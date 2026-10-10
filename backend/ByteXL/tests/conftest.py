@@ -1,4 +1,10 @@
 import os
+
+# Ensure test environment defaults
+os.environ["ENVIRONMENT"] = "test"
+os.environ["DNS_RESOLVER_MODE"] = "mock"
+os.environ["OTP_PROVIDER"] = "mock"
+
 from typing import AsyncGenerator
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -6,16 +12,14 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
+from app.core.config import get_settings
+get_settings.cache_clear()
+
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import create_application
 from app.services.dns_resolver import MockDNSResolver, get_dns_resolver
 from app.services.otp_provider import MockOTPProvider, get_otp_provider
-
-# Ensure test environment defaults
-os.environ["ENVIRONMENT"] = "test"
-os.environ["DNS_RESOLVER_MODE"] = "mock"
-os.environ["OTP_PROVIDER"] = "mock"
 
 
 @pytest.fixture

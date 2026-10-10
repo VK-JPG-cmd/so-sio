@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     )
 
     APP_NAME: str = Field(
-        default="So-cio Backend",
+        default="BrandShield AI Backend",
         description="Name of the application",
     )
     ENVIRONMENT: str = Field(
@@ -74,9 +74,13 @@ class Settings(BaseSettings):
     )
 
     # OTP Authentication Settings
-    OTP_PROVIDER: Literal["mock", "console", "twilio"] = Field(
+    OTP_PROVIDER: Literal["mock", "console", "twilio", "fast2sms"] = Field(
         default="mock",
-        description="Provider strategy for OTP delivery (mock, console, twilio)",
+        description="Provider strategy for OTP delivery (mock, console, twilio, fast2sms)",
+    )
+    FAST2SMS_API_KEY: Optional[str] = Field(
+        default=None,
+        description="Fast2SMS API authorization key for Indian mobile SMS delivery",
     )
     OTP_CODE_LENGTH: int = Field(
         default=6,

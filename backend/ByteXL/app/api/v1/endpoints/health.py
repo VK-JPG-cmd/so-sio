@@ -50,11 +50,12 @@ async def get_readiness() -> Response:
 
     # Real database ping
     db_ok, db_err = await check_db_health()
+    is_sqlite = "sqlite" in settings.DATABASE_URL
 
     dependencies = {
         "database": DependencyStatus(
             status="connected" if db_ok else "disconnected",
-            engine="postgresql",
+            engine="sqlite" if is_sqlite else "postgresql",
             error=db_err,
         )
     }

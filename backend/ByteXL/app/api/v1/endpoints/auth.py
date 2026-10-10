@@ -44,7 +44,7 @@ async def start_otp(
     cooldown, expires_in = await auth_service.start_otp(db, payload.phone_number)
     return OTPStartResponse(
         success=True,
-        message="Verification code requested. Check your phone.",
+        message="A verification code has been dispatched. Check your phone.",
         verification_required=True,
         cooldown_seconds=cooldown,
         expires_in_seconds=expires_in,

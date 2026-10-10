@@ -8,7 +8,8 @@ export const DemoBadge: React.FC = () => {
   const { role, isDemoMode, switchRole, toggleDemoMode } = useAuth();
   const { brands, currentBrand, selectBrandById } = useBrand();
   const [isOpen, setIsOpen] = useState(false);
-  const [dbConnected, setDbConnected] = useState<boolean>(true);
+  const [dbConnected, setDbConnected] = useState<boolean>(false);
+  const [dbEngine, setDbEngine] = useState<string>('postgresql');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,6 +19,9 @@ export const DemoBadge: React.FC = () => {
         if (res.ok) {
           const data = await res.json();
           setDbConnected(data?.dependencies?.database?.status === 'connected');
+          if (data?.dependencies?.database?.engine) {
+            setDbEngine(data.dependencies.database.engine);
+          }
         } else {
           setDbConnected(false);
         }
@@ -163,12 +167,12 @@ export const DemoBadge: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-[#737478]">
                   <Database className="w-3.5 h-3.5" />
-                  <span className="text-[11px] font-medium">Database (Neon)</span>
+                  <span className="text-[11px] font-medium">Database</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${dbConnected ? 'bg-emerald-500' : 'bg-red-500'}`} />
                   <span className={`text-[11px] font-semibold ${dbConnected ? 'text-emerald-700' : 'text-red-600'}`}>
-                    {dbConnected ? 'PostgreSQL Connected' : 'Disconnected'}
+                    {dbConnected ? (dbEngine === 'sqlite' ? 'SQLite (Local) Connected' : 'PostgreSQL Connected') : 'Disconnected'}
                   </span>
                 </div>
               </div>

@@ -32,7 +32,9 @@ def normalize_phone_number(v: str) -> str:
     elif len(digits_only) == 10:
         candidate = f"+1{digits_only}"
     else:
-        candidate = f"+{digits_only}"
+        raise ValueError(
+            f"Phone number '{raw}' is not a valid mobile number in international E.164 format. Example: +919876543210"
+        )
 
     try:
         parsed = phonenumbers.parse(candidate, None)

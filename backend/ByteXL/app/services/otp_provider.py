@@ -91,6 +91,74 @@ class ConsoleOTPProvider(BaseOTPProvider):
         return expected.strip() == code.strip()
 
 
+class Fast2SMSProvider(BaseOTPProvider):
+    """
+    Indian SMS delivery provider using Fast2SMS Bulk V2 OTP API.
+    Sends authentic SMS to any Indian mobile number without pre-verification.
+    """
+
+    def __init__(self) -> None:
+        import os
+        api_key = getattr(settings, "FAST2SMS_API_KEY", None) or os.environ.get("FAST2SMS_API_KEY")
+        if not api_key:
+            raise ConfigurationError(
+                "FAST2SMS_API_KEY is required in backend/.env when OTP_PROVIDER is 'fast2sms'."
+            )
+        self.api_key = str(api_key).strip()
+        logger.info("Initialized Fast2SMSProvider for live SMS delivery.")
+
+    async def send_otp(self, phone_number: str, code: Optional[str] = None) -> bool:
+        if not code:
+            raise OTPDeliveryError("OTP code is required for Fast2SMS delivery.")
+
+        import re
+        import httpx
+
+        digits = re.sub(r"\D", "", phone_number)
+        if len(digits) > 10:
+            digits = digits[-10:]
+        if len(digits) != 10:
+            raise OTPDeliveryError(
+                f"Fast2SMS requires a valid 10-digit Indian mobile number, got '{phone_number}'."
+            )
+
+        masked = mask_phone_number(phone_number)
+        logger.info(f"Dispatching Fast2SMS OTP challenge to destination: {masked}")
+
+        url = "https://www.fast2sms.com/dev/bulkV2"
+        headers = {
+            "authorization": self.api_key,
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "route": "otp",
+            "variables_values": str(code),
+            "numbers": digits,
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                res = await client.post(url, headers=headers, json=payload)
+                data = res.json()
+                if res.status_code == 200 and data.get("return") is True:
+                    logger.info(f"Fast2SMS OTP challenge successfully delivered to {masked}")
+                    return True
+                else:
+                    msg = data.get("message", ["Fast2SMS dispatch rejected"])
+                    if isinstance(msg, list):
+                        msg = " ".join(msg)
+                    logger.error(f"Fast2SMS dispatch rejected for {masked}: {msg}")
+                    raise OTPDeliveryError(f"SMS Delivery Failed: {msg}")
+        except Exception as exc:
+            if isinstance(exc, OTPDeliveryError):
+                raise
+            logger.error(f"Fast2SMS network failure for {masked}: {exc}")
+            raise OTPDeliveryError(f"SMS network delivery error: {str(exc)}")
+
+    async def verify_otp(self, phone_number: str, code: str) -> bool:
+        return True
+
+
 class TwilioVerifyProvider(BaseOTPProvider):
     """
     Production SMS provider integrating with Twilio Verify API v2.
@@ -253,5 +321,7 @@ def get_otp_provider() -> BaseOTPProvider:
         return ConsoleOTPProvider()
     elif provider_type == "twilio":
         return TwilioVerifyProvider()
+    elif provider_type == "fast2sms":
+        return Fast2SMSProvider()
     else:
         raise ConfigurationError(f"Unsupported OTP provider: {provider_type}")
