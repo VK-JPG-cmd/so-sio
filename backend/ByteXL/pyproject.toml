@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brandshield-ai"
+version = "0.1.0"
+description = "BrandShield AI - AI-powered Digital Risk Protection platform"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "BrandShield Engineering Team" }
+]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "sqlalchemy>=2.0.28",
+    "alembic>=1.13.1",
+    "asyncpg>=0.29.0",
+    "python-dotenv>=1.0.1",
+    "pyjwt>=2.8.0",
+    "cryptography>=42.0.0",
+    "dnspython>=2.6.0",
+    "rapidfuzz>=3.6.0",
+    "tldextract>=5.1.0",
+    "scikit-learn>=1.4.0",
+    "pillow>=10.2.0",
+    "imagehash>=4.3.0",
+    "androguard>=3.4.0",
+    "python-multipart>=0.0.9",
+    "greenlet>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.5",
+    "httpx>=0.27.0",
+    "aiosqlite>=0.20.0",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+pythonpath = ["."]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]

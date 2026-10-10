@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: brandshield_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-brandshield_ai_dev}
+    ports:
+      # Bound strictly to loopback interface (127.0.0.1) - never exposed to public network
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # Persistent PostgreSQL database volume storage
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-brandshield_ai_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brandshield_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: "BrandShield AI Backend"
+      ENVIRONMENT: "${ENVIRONMENT:-development}"
+      API_V1_PREFIX: "/api/v1"
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-brandshield_ai_dev}"
+      BACKEND_CORS_ORIGINS: '${BACKEND_CORS_ORIGINS:-["http://localhost:3000","http://localhost:8000"]}'
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY:-brandshield-ai-super-secret-key-for-development-must-be-changed-in-production-min-32-chars}"
+      OTP_PROVIDER: "${OTP_PROVIDER:-mock}"
+      DNS_RESOLVER_MODE: "${DNS_RESOLVER_MODE:-mock}"
+      THREAT_DISCOVERY_WORKER_ENABLED: "${THREAT_DISCOVERY_WORKER_ENABLED:-false}"
+      URLHAUS_ENABLED: "${URLHAUS_ENABLED:-true}"
+      URLHAUS_API_URL: "${URLHAUS_API_URL:-https://urlhaus-api.abuse.ch/v1}"
+      URLHAUS_AUTH_KEY: "${URLHAUS_AUTH_KEY:-}"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    # Automatically execute Alembic migrations before starting ASGI application server
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./app:/app/app:ro
+      - ./alembic:/app/alembic:ro
+
+volumes:
+  postgres_data:
+    driver: local

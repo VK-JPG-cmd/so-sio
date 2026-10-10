@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Exact Primary Color Tokens */
+    --color-primary: #111312;
+    --color-secondary: #434346;
+    --color-accent: #FBF5A5;
+    
+    /* Surfaces */
+    --surface-dark: #111312;
+    --surface-card-dark: #181A19;
+    --surface-elevated-dark: #222423;
+    --surface-charcoal: #434346;
+    --surface-light: #F8F7F4;
+    --surface-card-light: #FFFFFF;
+    --surface-muted-light: #EFEFEA;
+    
+    /* Borders */
+    --border-dark: #2B2D2C;
+    --border-charcoal: #434346;
+    --border-light: #E2E1DC;
+    --border-accent: #FBF5A5;
+
+    /* Legacy Token Compatibility */
+    --brand-bg: #F8F7F4;
+    --brand-surface: #EFEFEA;
+    --brand-lavender: #434346;
+    --brand-purple: #111312;
+    --brand-pink: #FBF5A5;
+    --brand-dark: #111312;
+    --brand-muted: #737478;
+    --brand-border: #E2E1DC;
+    
+    /* Semantic Threat Indicators */
+    --threat-low: #2F7C5B;
+    --threat-medium: #B87B28;
+    --threat-high: #C8485E;
+    --threat-critical: #932035;
+    --accent-blue: #434346;
+  }
+
+  body {
+    background-color: #F8F7F4;
+    color: #111312;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Premium Charcoal & Butter Yellow Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111312;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #434346;
+  border-radius: 9999px;
+  border: 1px solid #111312;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FBF5A5;
+}
+
+/* Solid Editorial Surface Utilities (No Glassmorphism) */
+.solid-card-dark {
+  background-color: #181A19;
+  border: 1px solid #2B2D2C;
+  color: #F7F7F6;
+}
+
+.solid-card-light {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E1DC;
+  color: #111312;
+}
+
+.tag-pill-dark {
+  background-color: #222423;
+  color: #D6D6D8;
+  border: 1px solid #363837;
+}
+
+.tag-pill-accent {
+  background-color: #FBF5A5;
+  color: #111312;
+  border: 1px solid #FBF5A5;
+  font-weight: 700;
+}
+
+/* Subtle float animation for mascot */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: float 4.5s ease-in-out infinite;
+}
