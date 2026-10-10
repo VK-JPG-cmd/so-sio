@@ -1,5 +1,8 @@
-// Central API client configuration for BrandShield AI FastAPI integration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')
+    ? 'https://so-sio-backend.onrender.com/api/v1'
+    : 'http://localhost:8000/api/v1');
 
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>;

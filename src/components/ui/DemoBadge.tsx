@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useBrand } from '../../context/BrandContext';
 import { Sparkles, Shield, User, ArrowRightLeft, Check, Server, Database } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../services/api/client';
 
 export const DemoBadge: React.FC = () => {
   const { role, isDemoMode, switchRole, toggleDemoMode } = useAuth();
@@ -15,7 +16,7 @@ export const DemoBadge: React.FC = () => {
   useEffect(() => {
     const checkDb = async () => {
       try {
-        const res = await fetch('/api/v1/ready');
+        const res = await fetch(`${API_BASE_URL}/ready`);
         if (res.ok) {
           const data = await res.json();
           setDbConnected(data?.dependencies?.database?.status === 'connected');
