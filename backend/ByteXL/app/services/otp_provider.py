@@ -130,21 +130,37 @@ class Fast2SMSProvider(BaseOTPProvider):
             "authorization": self.api_key,
             "Content-Type": "application/json",
         }
-        payload = {
-            "route": "otp",
-            "variables_values": str(code),
+
+        # Try route 'q' (Quick SMS - does not require website verification)
+        payload_q = {
+            "route": "q",
+            "message": f"Your So-cio verification code is: {code}. Valid for 5 minutes.",
+            "flash": 0,
             "numbers": digits,
         }
 
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.post(url, headers=headers, json=payload)
+                res = await client.post(url, headers=headers, json=payload_q)
                 data = res.json()
                 if res.status_code == 200 and data.get("return") is True:
-                    logger.info(f"Fast2SMS OTP challenge successfully delivered to {masked}")
+                    logger.info(f"Fast2SMS OTP challenge successfully delivered via Quick SMS to {masked}")
+                    return True
+
+                # If route 'q' fails, fallback to route 'otp'
+                logger.warning(f"Fast2SMS Quick SMS route failed, attempting route 'otp' for {masked}")
+                payload_otp = {
+                    "route": "otp",
+                    "variables_values": str(code),
+                    "numbers": digits,
+                }
+                res_otp = await client.post(url, headers=headers, json=payload_otp)
+                data_otp = res_otp.json()
+                if res_otp.status_code == 200 and data_otp.get("return") is True:
+                    logger.info(f"Fast2SMS OTP challenge successfully delivered via route 'otp' to {masked}")
                     return True
                 else:
-                    msg = data.get("message", ["Fast2SMS dispatch rejected"])
+                    msg = data_otp.get("message") or data.get("message", ["Fast2SMS dispatch rejected"])
                     if isinstance(msg, list):
                         msg = " ".join(msg)
                     logger.error(f"Fast2SMS dispatch rejected for {masked}: {msg}")
