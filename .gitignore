@@ -37,6 +37,7 @@ env/
 *.sqlite3
 *.db
 backend/ByteXL/data/*.db
+data/
 
 # Editor directories and files
 .vscode/*
