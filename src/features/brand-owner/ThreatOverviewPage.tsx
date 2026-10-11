@@ -264,7 +264,7 @@ export const ThreatOverviewPage: React.FC = () => {
         <div className="flex items-center gap-3 shrink-0">
           <Link to="/brand-owner/ai-threat-explanation">
             <Button variant="outline" size="sm">
-              AI Threat Explanation
+              Why is this a threat?
             </Button>
           </Link>
           <Link to="/brand-owner/threat-details">

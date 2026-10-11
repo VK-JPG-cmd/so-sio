@@ -1,0 +1,146 @@
+/**
+ * background.css
+ * Luxurious, cinematic animated background styling for So-cio.
+ * Strictly adheres to 3-color palette: #111312, #434346, #FBF5A5.
+ */
+
+:root {
+  --color-black: #111312;
+  --color-charcoal: #434346;
+  --color-pale-yellow: #FBF5A5;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-black);
+  cursor: default;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fullscreen Background Wrapper */
+.cinematic-canvas-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 60 FPS GPU-Accelerated Dynamic Canvas */
+#bgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
+}
+
+/* Center Sanctuary Mask:
+   Keeps the optical center darker, cleaner, and visually serene
+   so the So-cio logo can emerge with maximum contrast and elegance */
+.center-sanctuary-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(17, 19, 18, 0.72) 0%,
+    rgba(17, 19, 18, 0.52) 32%,
+    rgba(17, 19, 18, 0.22) 58%,
+    rgba(17, 19, 18, 0) 80%
+  );
+}
+
+/* Ambient Radiance:
+   Soft pale-yellow optical breathing aura at the core */
+.ambient-radiance {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 58vw;
+  height: 58vh;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(251, 245, 165, 0.09) 0%,
+    rgba(251, 245, 165, 0.04) 38%,
+    rgba(67, 67, 70, 0.03) 65%,
+    rgba(17, 19, 18, 0) 80%
+  );
+  filter: blur(48px);
+  transition: opacity 2.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: radianceBreathe 9s ease-in-out infinite alternate;
+}
+
+.ambient-radiance.active {
+  opacity: 1;
+}
+
+@keyframes radianceBreathe {
+  0% {
+    transform: translate(-50%, -50%) scale(0.92);
+    filter: blur(42px);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.08);
+    filter: blur(56px);
+  }
+}
+
+/* Cinematic Edge Vignette */
+.cinema-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(17, 19, 18, 0) 45%,
+    rgba(17, 19, 18, 0.45) 75%,
+    rgba(17, 19, 18, 0.95) 100%
+  );
+}
+
+/* Initial Black Curtain for Cinematic Sequence:
+   Guarantees starting with pure black and fading out smoothly */
+.black-curtain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-black);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.black-curtain.reveal {
+  opacity: 0;
+}

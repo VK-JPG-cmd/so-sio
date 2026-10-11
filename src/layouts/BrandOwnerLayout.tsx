@@ -73,7 +73,7 @@ export const BrandOwnerLayout: React.FC = () => {
     { to: '/brand-owner/alerts', label: '7. Alerts', icon: Bell, badge: '3' },
     { to: '/brand-owner/risk-trends', label: '8. Risk Trends', icon: TrendingUp },
     { to: '/brand-owner/recommended-actions', label: '9. Recommended Actions', icon: Lightbulb },
-    { to: '/brand-owner/ai-threat-explanation', label: '10. AI Threat Explanation', icon: Sparkles },
+    { to: '/brand-owner/ai-threat-explanation', label: '10. Why is this a threat?', icon: Sparkles },
     { to: '/brand-owner/reports', label: '11. Reports', icon: FileText },
     { to: '/brand-owner/brand-profile', label: '12. Brand Profile & Settings', icon: Building2 },
     { to: '/brand-owner/reviews', label: '13. Customer Reviews', icon: MessageSquareHeart },
@@ -189,7 +189,10 @@ export const BrandOwnerLayout: React.FC = () => {
                 } bg-[#181A19] rounded-2xl border border-[#2D2F2E] shadow-2xl p-2 z-50 space-y-1`}>
                   <div className="text-[10px] font-bold text-[#737478] px-2 py-1 uppercase tracking-wider">Switch Brand</div>
                   {Array.from(new Map(brands.map((b) => [b.name.toLowerCase().trim(), b])).values())
-                    .filter((b) => b.name.toLowerCase().trim() !== 'nova commerce')
+                    .filter((b) => {
+                      const name = b.name.toLowerCase().trim();
+                      return name !== 'nova commerce' && name !== 'lumina cloud' && name !== 'aurapay checkout';
+                    })
                     .map((b) => (
                     <button
                       key={b.id}
@@ -370,7 +373,7 @@ export const BrandOwnerLayout: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search domain, IOC, hash, ticket..."
+                  placeholder="Search website, evidence, account name, ticket..."
                   className="w-full bg-transparent text-xs sm:text-sm font-medium text-white placeholder:text-[#8E9091] focus:outline-none truncate"
                 />
 

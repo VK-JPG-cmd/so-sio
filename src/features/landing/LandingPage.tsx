@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldMascotScene } from '../../components/3d/ShieldMascotScene';
 import { DemoBadge } from '../../components/ui/DemoBadge';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
-import { RiskGauge } from '../../components/ui/RiskGauge';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { 
@@ -26,65 +25,35 @@ import {
   User, 
   Cpu
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 export const LandingPage: React.FC = () => {
   const { switchRole } = useAuth();
   const { showToast } = useNotification();
   const navigate = useNavigate();
 
-  // Interactive Sandbox Demo State
-  const [selectedDemoIndex, setSelectedDemoIndex] = useState(0);
+  // Cinematic Intro State
+  const [showIntro, setShowIntro] = useState(true);
 
-  const demoCandidates = [
-    {
-      domain: 'apex-bank-secure-login.net/verify',
-      category: 'Phishing Clone',
-      riskScore: 96,
-      severity: 'critical' as const,
-      status: 'Active Threat',
-      logoMatch: '98.4%',
-      urgencyScore: 'High (NLP 9.6/10)',
-      sslAge: '18 hours old',
-      verdict: 'Pixel-identical cloned login page extracting banking credentials to external C2 host.',
-      evidence: ['Header SVG Logo extraction match', 'Urgent 15-min account freeze threat', 'Dormant wildcard cert']
-    },
-    {
-      domain: 'apexbaank.com/rewards',
-      category: 'Typosquatting',
-      riskScore: 84,
-      severity: 'high' as const,
-      status: 'Under Investigation',
-      logoMatch: '85.0%',
-      urgencyScore: 'Medium (Survey Funnel)',
-      sslAge: '3 days old',
-      verdict: 'Double-vowel insertion domain redirecting to credit card cashback prize phishing form.',
-      evidence: ['Form action post to gate-collector.xyz', 'Name permutation match', 'Brand trademark mention']
-    },
-    {
-      domain: 'apex-developer-community.tech',
-      category: 'Developer Resource',
-      riskScore: 22,
-      severity: 'low' as const,
-      status: 'Verified False Positive',
-      logoMatch: '8.0%',
-      urgencyScore: 'None Detected',
-      sslAge: '280 days old',
-      verdict: 'Legitimate open-source developer forum discussing public APIs. No phishing elements.',
-      evidence: ['No deceptive login forms', 'Independent developer registration', 'Clean WHOIS reputation']
-    }
-  ];
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data && (e.data.type === 'SOCIO_INTRO_COMPLETE' || e.data.type === 'SOCIO_INTRO_SKIP')) {
+        setShowIntro(false);
+      }
+    };
+    window.addEventListener('message', handleMessage);
 
-  const currentCandidate = demoCandidates[selectedDemoIndex];
+    // Auto-transition to main page after 7.4 seconds
+    const autoTimer = setTimeout(() => {
+      setShowIntro(false);
+    }, 7400);
 
-  const handleTriggerTakedownDemo = () => {
-    confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
-    showToast({ 
-      type: 'success', 
-      title: 'Takedown Package Dispatched!', 
-      message: `Registrar Abuse Desk ticket generated for ${currentCandidate.domain}` 
-    });
-  };
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearTimeout(autoTimer);
+    };
+  }, []);
+
+
 
   const handleSelectRoleAndNavigate = (role: 'brand_owner' | 'customer', path: string) => {
     switchRole(role);
@@ -92,65 +61,102 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F7F4] text-[#111312] font-sans antialiased selection:bg-[#FBF5A5] selection:text-[#111312] overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#F8F7F4] text-[#111312] font-sans antialiased selection:bg-[#FBF5A5] selection:text-[#111312] overflow-x-hidden">
       
-      {/* Top Banner Announcement: Solid Near-Black with Pale Butter Yellow */}
-      <div className="bg-[#111312] text-[#FBF5A5] text-xs py-2 px-4 text-center font-bold tracking-tight border-b border-[#2B2D2C]">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#FBF5A5]" />
-          <span>BrandShield AI &bull; Intelligent Digital Risk & Impersonation Protection &bull; ByteXL Edition</span>
-        </div>
-      </div>
-
-      {/* Header Navigation: Solid Near-Black High-End Bar */}
-      <header className="sticky top-0 z-50 bg-[#111312] border-b border-[#2B2D2C] px-4 sm:px-8 py-3.5 shadow-md">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <img
-              src="/socio-logo.png"
-              alt="So-cio Logo"
-              className="w-10 h-10 object-contain shrink-0 group-hover:scale-105 transition-transform"
+      {/* 1. CINEMATIC INTRO OVERLAY (Pure video animation — Image 3 controls removed) */}
+      <AnimatePresence>
+        {showIntro && (
+          <motion.div
+            key="cinematic-logo-intro"
+            initial={{ opacity: 1 }}
+            exit={{ 
+              opacity: 0, 
+              scale: 1.04, 
+              filter: 'blur(10px)',
+              transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } 
+            }}
+            className="fixed inset-0 z-50 bg-[#111312] overflow-hidden"
+          >
+            <iframe
+              src="/landing.html"
+              title="So-cio — Premium Cinematic Logo Reveal"
+              className="w-full h-full border-0 block"
+              allow="autoplay; fullscreen"
             />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-base font-extrabold text-white tracking-tight">So-cio</span>
-              </div>
-              <p className="text-[10px] text-[#9A9B9C] font-medium">Digital Risk & Impersonation Protection</p>
+
+            {/* Discreet Skip Intro pill in bottom-right corner */}
+            <div className="absolute bottom-6 right-6 z-30 pointer-events-auto">
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.6 }}
+                onClick={() => setShowIntro(false)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#111312]/85 hover:bg-[#1C1E1D] text-xs font-semibold text-[#9A9B9C] hover:text-[#FBF5A5] border border-white/10 hover:border-[#FBF5A5]/40 backdrop-blur-md transition-all shadow-xl group cursor-pointer"
+              >
+                <span>Skip Intro</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </motion.button>
             </div>
-          </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Center Nav Links */}
-          <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-[#9A9B9C]">
-            <a href="#capabilities" className="hover:text-[#FBF5A5] transition-colors">Capabilities</a>
-            <a href="#how-it-works" className="hover:text-[#FBF5A5] transition-colors">How It Works</a>
-            <a href="#demo-sandbox" className="hover:text-[#FBF5A5] transition-colors">Demo Sandbox</a>
-            <a href="#explainable-ai" className="hover:text-[#FBF5A5] transition-colors">Explainable AI</a>
-            <a href="#portals" className="hover:text-[#FBF5A5] transition-colors">Portals</a>
-          </nav>
-
-          {/* Right Utilities */}
-          <div className="flex items-center gap-3">
-            <DemoBadge />
-
-            <Link
-              to="/auth/brand-login"
-              className="hidden sm:inline-flex text-xs font-bold text-[#9A9B9C] hover:text-[#FBF5A5] px-3 py-1.5 rounded-lg transition-colors"
-            >
-              Sign In
+      {/* 2. MAIN BRANDSHIELD LANDING PAGE (Image 2 — Opens with smooth transition) */}
+      <motion.div
+        key="main-landing-content"
+        initial={showIntro ? { opacity: 0, y: 15 } : false}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full min-h-screen"
+      >
+        {/* Header Navigation: Solid Near-Black High-End Bar */}
+        <header className="sticky top-0 z-50 bg-[#111312] border-b border-[#2B2D2C] px-4 sm:px-8 py-3.5 shadow-md">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <img
+                src="/socio-logo.png"
+                alt="So-cio Logo"
+                className="w-10 h-10 object-contain shrink-0 group-hover:scale-105 transition-transform"
+              />
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base font-extrabold text-white tracking-tight">So-cio</span>
+                </div>
+                <p className="text-[10px] text-[#9A9B9C] font-medium">Digital Risk & Impersonation Protection</p>
+              </div>
             </Link>
 
-            <Link
-              to="/auth/brand-register"
-              className="px-4 py-2 rounded-xl bg-[#FBF5A5] hover:bg-[#F6EF8A] text-[#111312] text-xs font-bold shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Protect Your Brand
-            </Link>
+            {/* Center Nav Links */}
+            <nav className="hidden lg:flex items-center gap-7 text-xs font-semibold text-[#9A9B9C]">
+              <a href="#capabilities" className="hover:text-[#FBF5A5] transition-colors">Capabilities</a>
+              <a href="#how-it-works" className="hover:text-[#FBF5A5] transition-colors">How It Works</a>
+              <a href="#explainable-ai" className="hover:text-[#FBF5A5] transition-colors">Explainable AI</a>
+              <a href="#portals" className="hover:text-[#FBF5A5] transition-colors">Portals</a>
+            </nav>
+
+            {/* Right Utilities */}
+            <div className="flex items-center gap-3">
+              <DemoBadge />
+
+              <button
+                onClick={() => handleSelectRoleAndNavigate('brand_owner', '/auth/brand-register')}
+                className="hidden sm:inline-flex text-xs font-bold text-[#9A9B9C] hover:text-[#FBF5A5] px-3 py-1.5 rounded-lg transition-colors"
+              >
+                Sign In
+              </button>
+
+              <Link
+                to="/auth/brand-register"
+                className="px-4 py-2 rounded-xl bg-[#FBF5A5] hover:bg-[#F6EF8A] text-[#111312] text-xs font-bold shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Protect Your Brand
+              </Link>
+            </div>
+
           </div>
-
-        </div>
-      </header>
+        </header>
 
       {/* SECTION A: THE HERO SECTION */}
       <section className="relative pt-12 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center">
@@ -205,7 +211,7 @@ export const LandingPage: React.FC = () => {
           </button>
 
           <a
-            href="#demo-sandbox"
+            href="#capabilities"
             className="w-full sm:w-auto px-7 py-3 rounded-xl bg-white hover:bg-[#F4F3EF] text-[#111312] text-sm font-bold border border-[#D5D4CE] shadow-sm transition-all"
           >
             Explore the Platform
@@ -450,137 +456,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION D: INTERACTIVE THREAT INTELLIGENCE PREVIEW (DEMO SANDBOX) */}
-      {/* Inspired by Image 2's Sleek Dark UI Card */}
-      <section id="demo-sandbox" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#111312] border border-[#2B2D2C] text-[#FBF5A5] font-bold text-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#FBF5A5]" />
-            <span>INTERACTIVE DEMO SANDBOX &bull; SYNTHETIC DATASET</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111312] tracking-tight">
-            Live AI Risk Evidence Inspector
-          </h2>
-          <p className="text-xs sm:text-sm text-[#434346] leading-relaxed">
-            Select a candidate below to see how BrandShield AI extracts visual cloning evidence, analyzes NLP urgency cues, and scores threat severity.
-          </p>
-        </div>
 
-        {/* Interactive Candidate Tabs */}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {demoCandidates.map((cand, idx) => (
-            <button
-              key={cand.domain}
-              onClick={() => setSelectedDemoIndex(idx)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                selectedDemoIndex === idx
-                  ? 'bg-[#111312] text-[#FBF5A5] shadow-sm border border-[#111312]'
-                  : 'bg-white hover:bg-[#F4F3EF] text-[#434346] border border-[#D5D4CE]'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${
-                cand.severity === 'critical' ? 'bg-[#FBF5A5]' :
-                cand.severity === 'high' ? 'bg-amber-400' : 'bg-emerald-400'
-              }`} />
-              <span className="font-mono">{cand.domain.split('/')[0]}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Active Inspection Dossier Card: Solid Near-Black Card with Butter Yellow Highlights */}
-        <Card variant="dark" className="p-6 sm:p-10 bg-[#181A19] border border-[#2B2D2C] shadow-2xl rounded-3xl">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
-            {/* Left Column: Evidence & Indicators (7-cols) */}
-            <div className="lg:col-span-7 space-y-5">
-              <div className="flex items-center justify-between gap-3 flex-wrap pb-3 border-b border-[#2B2D2C]">
-                <div>
-                  <span className="text-[10px] font-bold text-[#FBF5A5] uppercase tracking-wider">Inspecting Candidate Target</span>
-                  <h3 className="text-base sm:text-lg font-mono font-extrabold text-white mt-0.5">
-                    {currentCandidate.domain}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge severity={currentCandidate.severity} />
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#222423] text-[#FBF5A5] border border-[#3A3C3B]">
-                    {currentCandidate.category}
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-xs text-[#9A9B9C] leading-relaxed">
-                {currentCandidate.verdict}
-              </p>
-
-              {/* Forensic Similarity Indicators */}
-              <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-[#111312] border border-[#2B2D2C] text-center">
-                <div>
-                  <span className="text-[10px] font-bold text-[#9A9B9C] uppercase">Logo Match</span>
-                  <p className="text-base font-extrabold text-[#FBF5A5] mt-0.5">{currentCandidate.logoMatch}</p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-[#9A9B9C] uppercase">NLP Urgency</span>
-                  <p className="text-base font-extrabold text-rose-400 mt-0.5">{currentCandidate.urgencyScore}</p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-[#9A9B9C] uppercase">SSL Certificate</span>
-                  <p className="text-base font-extrabold text-white mt-0.5">{currentCandidate.sslAge}</p>
-                </div>
-              </div>
-
-              {/* Evidence Checklist */}
-              <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] font-bold text-[#FBF5A5] uppercase tracking-wider">Supporting Forensic Evidence:</span>
-                {currentCandidate.evidence.map((ev, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs text-[#D6D6D8] bg-[#111312] p-2.5 rounded-xl border border-[#2B2D2C]">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#FBF5A5] shrink-0" />
-                    <span>{ev}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Right Column: Circular Risk Gauge & Simulated Takedown Action (5-cols) */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl bg-[#111312] border border-[#2B2D2C] space-y-5">
-              <RiskGauge
-                score={currentCandidate.riskScore}
-                severity={currentCandidate.severity}
-                confidence={96}
-                modelVersion="RiskGuard-v4.2.1-hybrid"
-                explanation={currentCandidate.verdict}
-                theme="dark"
-                size="md"
-              />
-
-              <div className="w-full pt-2 flex flex-col gap-2">
-                {currentCandidate.riskScore >= 70 ? (
-                  <Button
-                    variant="accent"
-                    onClick={handleTriggerTakedownDemo}
-                    className="w-full shadow-sm"
-                    leftIcon={<Send className="w-4 h-4" />}
-                  >
-                    Simulate Fast-Track Takedown
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full bg-[#181A19] text-white border-[#2B2D2C] hover:bg-[#222423]"
-                    leftIcon={<CheckCircle2 className="w-4 h-4 text-[#FBF5A5]" />}
-                  >
-                    Allowlisted Resource
-                  </Button>
-                )}
-
-                <Link to="/brand-owner/threats" className="text-center text-xs font-bold text-[#FBF5A5] hover:underline pt-1">
-                  Open in Full Threat Workspace &rarr;
-                </Link>
-              </div>
-            </div>
-
-          </div>
-        </Card>
-      </section>
 
       {/* SECTION E: EXPLAINABLE AI ARCHITECTURE */}
       <section id="explainable-ai" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
@@ -666,12 +542,12 @@ export const LandingPage: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <Link
-                to="/auth/brand-login"
-                className="py-3 px-4 rounded-xl bg-[#1C1E1D] hover:bg-[#252726] text-white text-xs font-semibold border border-[#2D2F2E]"
+              <button
+                onClick={() => handleSelectRoleAndNavigate('brand_owner', '/auth/brand-register')}
+                className="py-3 px-4 rounded-xl bg-[#1C1E1D] hover:bg-[#252726] text-white text-xs font-semibold border border-[#2D2F2E] transition-colors"
               >
                 Sign In
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -723,37 +599,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* SECTION G: FINAL CALL TO ACTION */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <div className="p-8 sm:p-14 rounded-3xl bg-[#111312] text-white border border-[#2B2D2C] shadow-2xl text-center space-y-6 relative overflow-hidden">
-          <div className="w-14 h-14 rounded-2xl bg-[#FBF5A5] text-[#111312] flex items-center justify-center mx-auto shadow-sm">
-            <Shield className="w-7 h-7 fill-[#111312]" />
-          </div>
 
-          <div className="space-y-2 max-w-xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Ready to Protect Your Digital Perimeter?
-            </h2>
-            <p className="text-xs sm:text-sm text-[#9A9B9C] leading-relaxed">
-              Join leading organizations safeguarding their customer trust with BrandShield AI.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
-            <Link to="/auth/brand-register">
-              <Button variant="accent" size="lg" className="w-full sm:w-auto font-bold" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                Register Your Brand Today
-              </Button>
-            </Link>
-
-            <Link to="/customer/report">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto bg-[#181A19] text-white border-[#2B2D2C] hover:bg-[#222423]">
-                Report a Suspicious Scam
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* SECTION H: PREMIUM NEAR-BLACK FOOTER */}
       <footer className="bg-[#111312] text-white border-t border-[#2B2D2C] py-12 px-4 sm:px-8">
@@ -811,6 +657,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+      </motion.div>
 
     </div>
   );

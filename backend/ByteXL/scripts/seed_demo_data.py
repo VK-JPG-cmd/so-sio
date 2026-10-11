@@ -73,8 +73,6 @@ async def seed_data() -> None:
         # 2. Brands
         brands_data = [
             ("ApexBank Global", "apexbank.com"),
-            ("AuraPay Checkout", "aurapay.io"),
-            ("Lumina Cloud", "luminacloud.com"),
         ]
 
         apex_brand = None

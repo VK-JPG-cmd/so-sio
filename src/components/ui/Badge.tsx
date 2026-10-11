@@ -27,22 +27,22 @@ export const Badge: React.FC<BadgeProps> = ({
       low: {
         bg: 'bg-[#EAF5F0] text-[#2F7C5B] border-[#C3E4D6]',
         icon: ShieldCheck,
-        label: 'Low Severity'
+        label: 'Low Risk'
       },
       medium: {
         bg: 'bg-[#FDF6E9] text-[#B87B28] border-[#F1DCBD]',
         icon: AlertTriangle,
-        label: 'Medium Severity'
+        label: 'Medium Risk'
       },
       high: {
         bg: 'bg-[#FDEEEF] text-[#C8485E] border-[#F5C4CB]',
         icon: ShieldAlert,
-        label: 'High Severity'
+        label: 'High Risk'
       },
       critical: {
         bg: 'bg-[#111312] text-[#FBF5A5] border-[#434346]',
         icon: AlertOctagon,
-        label: 'Critical Severity'
+        label: 'Critical Risk'
       },
     }[sev];
 
@@ -67,22 +67,22 @@ export const Badge: React.FC<BadgeProps> = ({
       under_investigation: {
         bg: 'bg-[#222423] text-[#FBF5A5] border-[#3E403F]',
         icon: Clock,
-        label: 'Under Investigation'
+        label: 'Being reviewed'
       },
       takedown_requested: {
         bg: 'bg-[#434346] text-white border-[#5A5A60]',
         icon: Send,
-        label: 'Takedown In Progress'
+        label: 'Removal requested'
       },
       resolved: {
         bg: 'bg-[#EAF5F0] text-[#2F7C5B] border-[#C3E4D6]',
         icon: CheckCircle2,
-        label: 'Resolved / Blocked'
+        label: 'Resolved / Removed'
       },
       false_positive: {
         bg: 'bg-[#EFEFEA] text-[#434346] border-[#DCDAD4]',
         icon: ShieldX,
-        label: 'False Positive'
+        label: 'Safe / Allowed'
       },
       verified: {
         bg: 'bg-[#FBF5A5] text-[#111312] border-[#FBF5A5] font-bold',

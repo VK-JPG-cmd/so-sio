@@ -1,6 +1,11 @@
-# BrandShield AI — Intelligent Digital Risk & Impersonation Protection
+# So-Cio (BrandShield AI) — Intelligent Digital Risk & Impersonation Protection
 
-BrandShield AI is an enterprise-grade AI-powered Digital Risk Protection (DRP) platform designed with the **"Soft Intelligence"** design system.
+> **AI-Powered Digital Risk Protection Platform**  
+> *Problem Statement • Proposed Solution • Architecture • Workflow • Technology Stack*
+
+📄 **Official Project Specification & Architecture Overview:**
+- 📘 **Markdown Specification for Human & AI Evaluators:** [docs/PROJECT_OVERVIEW.md](./docs/PROJECT_OVERVIEW.md)
+- 📑 **Original Word Document:** [docs/So-Cio_Problem_Solution_Architecture_Workflow_TechStack.docx](./docs/So-Cio_Problem_Solution_Architecture_Workflow_TechStack.docx)
 
 ---
 

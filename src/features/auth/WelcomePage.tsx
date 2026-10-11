@@ -97,12 +97,12 @@ export const WelcomePage: React.FC = () => {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <Link
-                to="/auth/brand-login"
-                className="py-3 px-4 rounded-xl bg-[#1C1E1D] hover:bg-[#252726] text-white text-xs font-semibold border border-[#2D2F2E]"
+              <button
+                onClick={() => handleSelectRole('brand_owner', '/auth/brand-register')}
+                className="py-3 px-4 rounded-xl bg-[#1C1E1D] hover:bg-[#252726] text-white text-xs font-semibold border border-[#2D2F2E] transition-colors"
               >
                 Sign In
-              </Link>
+              </button>
             </div>
           </div>
 

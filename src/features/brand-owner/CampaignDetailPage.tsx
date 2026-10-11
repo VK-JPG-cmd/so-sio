@@ -357,11 +357,11 @@ export const CampaignDetailPage: React.FC = () => {
         </div>
 
         <div className="p-3.5 rounded-2xl bg-white border border-[#E2E1DC] shadow-soft col-span-2 md:col-span-1">
-          <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider block">5. Linked Indicators</span>
+          <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider block">5. Linked Evidence</span>
           <div className="mt-1">
-            <span className="text-sm font-black text-[#111312]">4 Verified IOCs</span>
+            <span className="text-sm font-black text-[#111312]">4 Pieces of Technical Evidence</span>
           </div>
-          <span className="text-[10px] text-[#434346] mt-0.5 block">Domains, IPs & Malware hashes</span>
+          <span className="text-[10px] text-[#434346] mt-0.5 block">Websites, IPs & file evidence</span>
         </div>
       </div>
 
@@ -469,9 +469,9 @@ export const CampaignDetailPage: React.FC = () => {
               </div>
 
               <div className="p-3.5 rounded-2xl bg-white border border-[#E2E1DC]">
-                <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider">Correlated Technical IOC</span>
+                <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider">Technical Evidence (IOC)</span>
                 <p className="font-mono font-bold text-[#111312] mt-0.5 truncate">{currentStep.entity}</p>
-                <p className="text-[11px] text-[#434346] mt-0.5">Identified technical fingerprint</p>
+                <p className="text-[11px] text-[#434346] mt-0.5">Identified forensic evidence</p>
               </div>
             </div>
           </div>
@@ -486,10 +486,10 @@ export const CampaignDetailPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-[#111312]" />
-                <h3 className="text-base font-extrabold text-[#111312]">Structured Threat Evidence & Linked Indicators</h3>
+                <h3 className="text-base font-extrabold text-[#111312]">Threat Evidence & Linked Items</h3>
               </div>
               <p className="text-xs text-[#434346] mt-0.5">
-                Verified technical evidence correlated with this campaign, including domains, social handles, and APKs.
+                Verified technical evidence linked to this campaign, including fake websites, social handles, and apps.
               </p>
             </div>
 
@@ -498,7 +498,7 @@ export const CampaignDetailPage: React.FC = () => {
               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#111312] bg-[#FBF5A5] px-3 py-1.5 rounded-xl border border-[#DCDAD4] shrink-0 hover:bg-[#F3ED92] transition-colors"
             >
               <HelpCircle className="w-3.5 h-3.5 text-[#111312]" />
-              <span>{showGlossary ? 'Hide Cybersecurity Glossary' : 'Plain-English Threat Glossary'}</span>
+              <span>{showGlossary ? 'Hide Simple Explanations' : 'Plain-English Threat Explanations'}</span>
             </button>
           </div>
         }
@@ -513,27 +513,27 @@ export const CampaignDetailPage: React.FC = () => {
               </span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-white border border-[#E2E1DC]">
-                  <strong className="text-[#111312] block">What is an IOC (Indicator of Compromise)?</strong>
+                  <strong className="text-[#111312] block">What is Technical Evidence (IOC / Hash)?</strong>
                   <span className="text-[#434346] text-[11px] mt-0.5 block">
-                    A digital fingerprint (such as a rogue web domain, IP address, or APK file hash) that security systems use to positively identify unauthorized fraudulent activity.
+                    A digital fingerprint (such as a lookalike web domain, IP address, or app file code) that security systems use to positively identify unauthorized fraudulent activity.
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white border border-[#E2E1DC]">
-                  <strong className="text-[#111312] block">What is a C2 Server?</strong>
+                  <strong className="text-[#111312] block">What is a Control Server (C2)?</strong>
                   <span className="text-[#434346] text-[11px] mt-0.5 block">
-                    A Command & Control server operated by cybercriminals to send instructions to malware and stealthily collect stolen login credentials from victims.
+                    A remote server operated by scammers to stealthily harvest login credentials entered by victims.
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white border border-[#E2E1DC]">
-                  <strong className="text-[#111312] block">What is a Trojanized APK?</strong>
+                  <strong className="text-[#111312] block">What is a Fake App (Trojan APK)?</strong>
                   <span className="text-[#434346] text-[11px] mt-0.5 block">
-                    A fraudulent Android app disguised as an official banking tool that displays fake login overlay popups to steal passwords and SMS authorization codes.
+                    A fraudulent Android app pretending to be an official bank utility, designed to steal customer passwords and SMS codes.
                   </span>
                 </div>
                 <div className="p-3 rounded-xl bg-white border border-[#E2E1DC]">
-                  <strong className="text-[#111312] block">What is Typosquatting?</strong>
+                  <strong className="text-[#111312] block">What is a Lookalike Website (Typosquatting)?</strong>
                   <span className="text-[#434346] text-[11px] mt-0.5 block">
-                    Registering domains that look deceptively similar to your authentic website (e.g. `apex-bank-secure.net`) to trick users into believing it is genuine.
+                    A deceptive domain name with slight misspellings or extra letters (like "apexbaank.com") designed to fool users who misspell your official web address.
                   </span>
                 </div>
               </div>

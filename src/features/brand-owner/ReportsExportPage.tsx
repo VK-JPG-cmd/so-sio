@@ -96,9 +96,9 @@ export const ReportsExportPage: React.FC = () => {
               onChange={(e) => setReportType(e.target.value)}
               className="w-full rounded-2xl bg-brand-surface-light border border-brand-border px-4 py-2.5 text-xs font-bold text-brand-dark focus:outline-none focus:border-[#111312]"
             >
-              <option value="executive">Executive Summary (Board of Directors & C-Suite)</option>
-              <option value="technical">Technical Threat & IOC Archive (Security Team)</option>
-              <option value="takedown">Registrar Takedown Audit Log (Legal & Compliance)</option>
+              <option value="executive">Executive Summary (Board of Directors & Leadership)</option>
+              <option value="technical">Technical Evidence & Forensic Archive</option>
+              <option value="takedown">Website Removal Audit Log (Legal & Compliance)</option>
             </select>
           </div>
 
