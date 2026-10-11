@@ -105,6 +105,50 @@ async def get_threat_report(
     return ThreatReportResponse.model_validate(report)
 
 
+@router.get(
+    "/{report_id}/status",
+    status_code=status.HTTP_200_OK,
+    summary="Get report investigation milestones and consumer guidance",
+    description="Track real-time status progression milestones (Submitted, In Triage, Under Investigation, Takedown Initiated, Resolved) and actionable guidance for victims.",
+)
+async def get_report_status_milestones(
+    report_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    report = await threat_report_service.get_report_by_id(
+        db=db,
+        report_id=report_id,
+        current_user=current_user,
+    )
+    status_str = report.status.value.upper()
+    
+    # Milestone mapping
+    milestones = [
+        {"milestone": "SUBMITTED", "label": "Report Submitted", "completed": True, "timestamp": report.created_at.isoformat() if report.created_at else None, "note": "Report captured and indexed by BrandShield intake engine."},
+        {"milestone": "TRIAGE", "label": "In Triage", "completed": status_str in ["IN_REVIEW", "INVESTIGATING", "ACTION_TAKEN", "RESOLVED"], "timestamp": None, "note": "Automated threat intelligence cross-referenced against brand assets."},
+        {"milestone": "INVESTIGATION", "label": "Under Investigation", "completed": status_str in ["INVESTIGATING", "ACTION_TAKEN", "RESOLVED"], "timestamp": None, "note": "Digital forensic evidence and DNS/WHOIS artifacts assembled."},
+        {"milestone": "TAKEDOWN", "label": "Takedown Initiated", "completed": status_str in ["ACTION_TAKEN", "RESOLVED"], "timestamp": None, "note": "Notice dispatched to hosting provider, registrar, or platform security desk."},
+        {"milestone": "RESOLVED", "label": "Threat Neutralized", "completed": status_str == "RESOLVED", "timestamp": None, "note": "Impersonating resource suspended or blocked globally."},
+    ]
+    
+    guidance = [
+        "If you entered credentials or passwords on this site, immediately reset your official brand account password.",
+        "Enable Multi-Factor Authentication (2FA/OTP) on your primary accounts.",
+        "If you shared financial or card information, notify your bank immediately to freeze card authorizations.",
+        "Never approve unknown 2FA push notifications or phone calls asking for OTP codes.",
+    ]
+
+    return {
+        "report_id": str(report_id),
+        "current_status": status_str,
+        "reported_value": report.reported_value,
+        "threat_type": report.threat_type.value,
+        "milestones": milestones,
+        "consumer_guidance": guidance,
+    }
+
+
 @router.patch(
     "/{report_id}",
     response_model=ThreatReportResponse,

@@ -47,11 +47,14 @@ import {
   ThreatFilterKey 
 } from '../../components/ui/filters';
 
+import { DemoWorkflow } from '../demo/DemoWorkflow';
+
 export const OverviewDashboard: React.FC = () => {
   const { currentBrand } = useBrand();
   const [threats, setThreats] = useState<SuspiciousThreat[]>([]);
   const [reports, setReports] = useState<CustomerReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDemoPipeline, setShowDemoPipeline] = useState(false);
   const navigate = useNavigate();
 
   // Reference-styled filter states
@@ -322,6 +325,36 @@ export const OverviewDashboard: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
+
+      {/* Interactive Evaluation Walkthrough Modal / Banner */}
+      <div className="flex items-center justify-between bg-stone-900 text-white px-5 py-3.5 rounded-2xl shadow-md">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-stone-200">
+              Evaluator Interactive Walkthrough
+            </h3>
+            <p className="text-xs text-stone-400">
+              Test live brand onboarding, lookalike domains, social impersonation, and dangerous APK analysis.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowDemoPipeline(!showDemoPipeline)}
+          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
+        >
+          {showDemoPipeline ? 'Hide Walkthrough' : 'Launch Interactive Demo'}
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {showDemoPipeline && (
+        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+          <DemoWorkflow />
+        </div>
+      )}
       
       {/* Refined Brand Profile Header Banner */}
       <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#E2E1DC] shadow-sm space-y-4">

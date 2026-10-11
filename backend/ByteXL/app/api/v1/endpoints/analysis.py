@@ -250,3 +250,75 @@ async def get_analysis_job_status(
         result=job.result,
         error_message=job.error_message,
     )
+
+
+from app.services.detection.social_monitoring import SocialMediaMonitoringService
+from app.services.detection.app_store_monitoring import AppStoreMonitoringService
+from app.services.brand_verification import BrandProfileService
+
+social_monitoring_service = SocialMediaMonitoringService()
+app_store_monitoring_service = AppStoreMonitoringService()
+brand_profile_service = BrandProfileService()
+
+
+@router.get(
+    "/social-monitoring",
+    status_code=status.HTTP_200_OK,
+    summary="Scan Twitter and Instagram for brand imposter profiles",
+    description="Dispatches live & heuristic queries against X/Twitter and Instagram with 4-factor risk scoring.",
+)
+async def scan_social_threats(
+    brand_name: str,
+    official_handle: Optional[str] = None,
+    current_user: User = Depends(get_current_active_user),
+):
+    twitter_threats = await social_monitoring_service.scan_twitter_handles(brand_name, official_handle)
+    instagram_threats = await social_monitoring_service.scan_instagram_profiles(brand_name, official_handle)
+    return {
+        "brand_name": brand_name,
+        "official_handle": official_handle,
+        "threats_discovered": len(twitter_threats) + len(instagram_threats),
+        "twitter_threats": [t.model_dump() for t in twitter_threats],
+        "instagram_threats": [t.model_dump() for t in instagram_threats],
+    }
+
+
+@router.get(
+    "/app-store-monitoring",
+    status_code=status.HTTP_200_OK,
+    summary="Scan Google Play and Apple App Store for fake mobile apps",
+    description="Scans app marketplaces for lookalike package names, spoofed developer accounts, and dangerous permission capabilities.",
+)
+async def scan_app_store_threats(
+    brand_name: str,
+    official_package: Optional[str] = None,
+    current_user: User = Depends(get_current_active_user),
+):
+    play_threats = await app_store_monitoring_service.scan_google_play_store(brand_name, official_package)
+    apple_threats = await app_store_monitoring_service.scan_apple_app_store(brand_name, official_package)
+    return {
+        "brand_name": brand_name,
+        "threats_discovered": len(play_threats) + len(apple_threats),
+        "google_play_threats": [t.model_dump() for t in play_threats],
+        "apple_app_store_threats": [t.model_dump() for t in apple_threats],
+    }
+
+
+@router.get(
+    "/brand-verification",
+    status_code=status.HTTP_200_OK,
+    summary="Verify brand authenticity and multi-factor assets",
+    description="Evaluates DNS TXT record, SSL certificate chain, and registered domain inventory.",
+)
+async def verify_brand_assets(
+    domain: str,
+    brand_name: Optional[str] = None,
+    current_user: User = Depends(get_current_active_user),
+):
+    b_name = brand_name or domain.split(".")[0].capitalize()
+    res = await brand_profile_service.verify_brand_authenticity(
+        brand_id=str(uuid.uuid4()),
+        brand_name=b_name,
+        official_domain=domain,
+    )
+    return res.model_dump()
