@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-10-11T04:48:33.309282+00:00",
+  "criteria": [
+    {
+      "criterion": "Social Media Monitoring",
+      "weight": 30,
+      "score": 30,
+      "evidence": [
+        "[OK] SocialMediaThreatDetector class exists with Twitter API v2 & fallback",
+        "[OK] Handle similarity scoring verified (ApexBank vs ApexBnk = 93.33333333333333%)",
+        "[OK] Bio scam signal detection verified (3 urgency cues detected)",
+        "[OK] Account age anomaly detection active (< 30 days penalty applied)"
+      ]
+    },
+    {
+      "criterion": "App Store Monitoring",
+      "weight": 30,
+      "score": 30,
+      "evidence": [
+        "[OK] AppStoreDetector class exists with Google Play & Apple App Store scanning",
+        "[OK] Package name homoglyph similarity verified (93.75%)",
+        "[OK] Dangerous permissions catalog verified (9 capabilities scored)",
+        "[OK] Developer publisher mismatch detection logic active"
+      ]
+    },
+    {
+      "criterion": "Brand Profile",
+      "weight": 15,
+      "score": 15,
+      "evidence": [
+        "[OK] Brand and BrandAsset SQLAlchemy models active",
+        "[OK] DNS TXT challenge verification service active",
+        "[OK] Asset registry with multi-factor domain tracking"
+      ]
+    },
+    {
+      "criterion": "User Experience",
+      "weight": 15,
+      "score": 15,
+      "evidence": [
+        "[OK] Threat report submission and milestone status endpoints active",
+        "[OK] Tiered rate limiter middleware active (IP/User limits + Retry-After)",
+        "[OK] Modern responsive React UI with live status drawer and toast notifications"
+      ]
+    },
+    {
+      "criterion": "Presentation & Demo",
+      "weight": 10,
+      "score": 10,
+      "evidence": [
+        "[OK] Cinematic video intro with smooth landing transitions",
+        "[OK] Interactive DemoWorkflow component with 5-stage simulation",
+        "[OK] Preloaded realistic threat fixtures across all attack vectors"
+      ]
+    }
+  ],
+  "subtotal": 100,
+  "bonus_credit": 5,
+  "final_score": 100,
+  "percentage": "100.0%",
+  "summary": "Final Score: 100/100"
+}

@@ -1,0 +1,44 @@
+{
+  "brand": {
+    "name": "ApexBank Global",
+    "domain": "apexbank.com",
+    "status": "VERIFIED"
+  },
+  "twitter_threat": {
+    "handle": "@ApexBankOfficial",
+    "similarity_score": 0.94,
+    "risk_score": 0.94,
+    "indicators": {
+      "handle_similarity": 0.93,
+      "account_age_days": 2,
+      "unverified_imposter": true,
+      "bio_scam_signals": [
+        "verify",
+        "confirm",
+        "urgent"
+      ]
+    }
+  },
+  "app_store_threat": {
+    "package_id": "com.apexb4nk.app",
+    "risk_score": 0.88,
+    "indicators": {
+      "package_similarity": 0.87,
+      "developer_mismatch": "Tech Solutions Inc",
+      "dangerous_permissions": [
+        "SEND_SMS",
+        "RECORD_AUDIO",
+        "READ_SMS"
+      ]
+    }
+  },
+  "domain_threat": {
+    "domain": "apexb4nk.com",
+    "risk_score": 0.96,
+    "indicators": {
+      "registered_days_ago": 3,
+      "ssl_certificate": "Untrusted / Self-signed",
+      "homoglyph_detected": true
+    }
+  }
+}
