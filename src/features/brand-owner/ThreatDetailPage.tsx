@@ -456,10 +456,10 @@ export const ThreatDetailPage: React.FC = () => {
                 className="w-full rounded-xl bg-[#F8F7F4] border border-[#E2E1DC] px-3 py-2 text-xs font-bold text-[#111312] focus:outline-none focus:border-[#111312] shadow-xs"
               >
                 <option value="active">Active Threat</option>
-                <option value="under_investigation">Under Investigation</option>
-                <option value="takedown_requested">Takedown In Progress</option>
-                <option value="resolved">Resolved / Blocked</option>
-                <option value="false_positive">False Positive (Allowlist)</option>
+                <option value="under_investigation">Being reviewed</option>
+                <option value="takedown_requested">Removal requested</option>
+                <option value="resolved">Resolved / Removed</option>
+                <option value="false_positive">Safe / Allowed</option>
               </select>
 
               {/* Takedown Status Details */}

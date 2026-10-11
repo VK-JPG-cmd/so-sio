@@ -24,9 +24,10 @@ const getCleanStoredBrands = (): BrandProfile[] => {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      // Filter out duplicate or junk registrations
+      // Filter out duplicate or removed brands
+      const excludedNames = ['nova commerce', 'lumina cloud', 'aurapay checkout', 'aurapay', 'lumina'];
       const cleaned = deduplicateBrands(parsed).filter(
-        b => b.name && b.name.trim().toLowerCase() !== 'nova commerce'
+        b => b.name && !excludedNames.includes(b.name.trim().toLowerCase())
       );
       localStorage.setItem(BRANDS_STORAGE_KEY, JSON.stringify(cleaned));
       return cleaned;
@@ -87,11 +88,12 @@ export const brandService = {
       }
     }
 
+    const excludedNames = ['nova commerce', 'lumina cloud', 'aurapay checkout', 'aurapay', 'lumina'];
     const stored = getCleanStoredBrands();
-    if (stored.length > 0) {
-      return deduplicateBrands([...stored, ...MOCK_BRANDS]);
-    }
-    return deduplicateBrands(MOCK_BRANDS);
+    const source = stored.length > 0 ? [...stored, ...MOCK_BRANDS] : MOCK_BRANDS;
+    return deduplicateBrands(source).filter(
+      b => b.name && !excludedNames.includes(b.name.trim().toLowerCase())
+    );
   },
 
   getBrandById: async (brandId: string): Promise<BrandProfile | null> => {

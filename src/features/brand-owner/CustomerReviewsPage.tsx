@@ -30,7 +30,13 @@ import {
   DollarSign,
   AlertCircle,
   Eye,
-  Check
+  Check,
+  Moon,
+  Sun,
+  ArrowUpRight,
+  Shield,
+  Layers,
+  ShoppingBag
 } from 'lucide-react';
 
 export const CustomerReviewsPage: React.FC = () => {
@@ -38,6 +44,9 @@ export const CustomerReviewsPage: React.FC = () => {
   const { showToast } = useNotification();
   const [reviews, setReviews] = useState<CustomerReview[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Card theme mode: 'dark' (matching reference image) or 'light'
+  const [cardTheme, setCardTheme] = useState<'dark' | 'light'>('dark');
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,111 +162,145 @@ export const CustomerReviewsPage: React.FC = () => {
   const responseCount = reviews.filter(r => !!r.brandResponse).length;
   const responseRate = totalReviewsCount > 0 ? Math.round((responseCount / totalReviewsCount) * 100) : 100;
 
-  const getProofTypeBadge = (type?: string) => {
+  const getProofTypeBadge = (type?: string, isDark: boolean = true) => {
     switch (type) {
       case 'invoice_receipt':
-        return { label: 'Verified Invoice / Receipt', icon: Receipt, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        return { 
+          label: 'Verified Invoice / Receipt', 
+          icon: Receipt, 
+          style: isDark ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+        };
       case 'transaction_ref':
-        return { label: 'Verified Transaction Ref', icon: DollarSign, color: 'bg-blue-50 text-blue-700 border-blue-200' };
+        return { 
+          label: 'Verified Transaction Ref', 
+          icon: DollarSign, 
+          style: isDark ? 'bg-blue-950/80 text-blue-400 border-blue-800' : 'bg-blue-50 text-blue-700 border-blue-200' 
+        };
       case 'phone_otp_and_contract':
-        return { label: 'OTP & Contract Verified', icon: UserCheck, color: 'bg-stone-100 text-[#111312] border-stone-300' };
+        return { 
+          label: 'Phone OTP & Contract', 
+          icon: UserCheck, 
+          style: isDark ? 'bg-stone-800 text-stone-200 border-stone-700' : 'bg-stone-100 text-[#111312] border-stone-300' 
+        };
       case 'crypto_tx_or_order':
-        return { label: 'Verified Order ID / Cryptographic Tx', icon: Lock, color: 'bg-teal-50 text-teal-700 border-teal-200' };
+        return { 
+          label: 'Cryptographic Order Digest', 
+          icon: Lock, 
+          style: isDark ? 'bg-teal-950/80 text-teal-400 border-teal-800' : 'bg-teal-50 text-teal-700 border-teal-200' 
+        };
       default:
-        return { label: 'Verified Customer Proof', icon: ShieldCheck, color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        return { 
+          label: 'Verified Customer Proof', 
+          icon: ShieldCheck, 
+          style: isDark ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' : 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+        };
     }
+  };
+
+  // Avatar gradient generator based on user name
+  const getAvatarGradient = (name: string) => {
+    const gradients = [
+      'from-amber-500 to-rose-500',
+      'from-blue-500 to-cyan-500',
+      'from-emerald-500 to-teal-500',
+      'from-purple-500 to-indigo-500',
+      'from-fuchsia-500 to-pink-500',
+      'from-orange-500 to-amber-500'
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
   };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       
-      {/* Feature Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      {/* 1. Page Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#E2E1DC]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#111312] text-[#FBF5A5] border border-[#2B2D2C]">
-              Feature 13
+            <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#111312] text-[#FBF5A5] border border-[#2B2D2C]">
+              Verified Proof Ledger
             </span>
             <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Customer-Only Verified Proofs
+              <ShieldCheck className="w-3.5 h-3.5" /> 100% Cryptographically Backed
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-dark tracking-tight mt-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111312] tracking-tight mt-1.5">
             Customer Reviews & Verified Proof Hub
           </h1>
-          <p className="text-xs sm:text-sm text-brand-muted mt-1 max-w-3xl">
-            Customer product reviews backed by cryptographic proof, verified order receipts, and Phone OTP validation. Inspect proof artifacts, triage customer feedback, and publish verified brand owner replies.
+          <p className="text-xs sm:text-sm text-[#434346] mt-1 max-w-3xl">
+            Customer feedback backed by cryptographic proof, verified order receipts, and Phone OTP validation. Inspect proof artifacts, triage customer feedback, and publish verified brand owner responses.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl bg-[#F4F3EF] border border-[#DCDAD4] flex items-center gap-3">
+          <div className="p-3 rounded-2xl bg-white border border-[#E2E1DC] shadow-soft flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-soft">
               <Star className="w-5 h-5 fill-white text-white" />
             </div>
             <div>
-              <div className="text-base font-extrabold text-brand-dark flex items-center gap-1.5">
-                {avgRating} <span className="text-xs text-brand-muted font-normal">/ 5.0</span>
+              <div className="text-base font-extrabold text-[#111312] flex items-center gap-1.5">
+                {avgRating} <span className="text-xs text-[#73726E] font-normal">/ 5.0</span>
               </div>
-              <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> 100% Authentic Customer Proof
+              <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> Zero Bot Spam
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Top 4 KPI Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 bg-white/90 border border-brand-border hover:shadow-soft transition-all">
-          <div className="flex items-center justify-between text-xs text-brand-muted font-medium mb-1">
-            <span>Verified Customer Reviews</span>
-            <MessageSquareHeart className="w-4 h-4 text-[#111312]" />
+      {/* 2. Top 4 Executive KPI Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 rounded-2xl bg-white border border-[#E2E1DC] shadow-soft">
+          <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider block">Verified Reviews</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-black text-[#111312]">{totalReviewsCount}</span>
+            <span className="text-[11px] font-semibold text-emerald-700">Phone OTP Verified</span>
           </div>
-          <div className="text-2xl font-extrabold text-brand-dark">{totalReviewsCount}</div>
-          <p className="text-[11px] text-brand-muted mt-1">Only Phone OTP + Proof verified customers</p>
-        </Card>
+        </div>
 
-        <Card className="p-4 bg-white/90 border border-brand-border hover:shadow-soft transition-all">
-          <div className="flex items-center justify-between text-xs text-brand-muted font-medium mb-1">
-            <span>Proof Verification Rate</span>
-            <FileCheck2 className="w-4 h-4 text-emerald-600" />
+        <div className="p-4 rounded-2xl bg-white border border-[#E2E1DC] shadow-soft">
+          <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider block">Proof Verification Rate</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-black text-emerald-700">{verifiedProofRate}</span>
+            <span className="text-[11px] font-semibold text-[#434346]">Cryptographic Ledger</span>
           </div>
-          <div className="text-2xl font-extrabold text-emerald-700">{verifiedProofRate}</div>
-          <p className="text-[11px] text-brand-muted mt-1">Zero unverified or bot spam reviews</p>
-        </Card>
+        </div>
 
-        <Card className="p-4 bg-white/90 border border-brand-border hover:shadow-soft transition-all">
-          <div className="flex items-center justify-between text-xs text-brand-muted font-medium mb-1">
-            <span>Brand Owner Response Rate</span>
-            <Reply className="w-4 h-4 text-[#111312]" />
+        <div className="p-4 rounded-2xl bg-white border border-[#E2E1DC] shadow-soft">
+          <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider block">Brand Response Rate</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-black text-[#111312]">{responseRate}%</span>
+            <span className="text-[11px] font-semibold text-[#434346]">{responseCount}/{totalReviewsCount} Answered</span>
           </div>
-          <div className="text-2xl font-extrabold text-[#111312]">{responseRate}%</div>
-          <p className="text-[11px] text-brand-muted mt-1">{responseCount} of {totalReviewsCount} reviews answered</p>
-        </Card>
+        </div>
 
-        <Card className="p-4 bg-white/90 border border-brand-border hover:shadow-soft transition-all">
-          <div className="flex items-center justify-between text-xs text-brand-muted font-medium mb-1">
-            <span>Customer Trust Score</span>
-            <ShieldCheck className="w-4 h-4 text-teal-600" />
+        <div className="p-4 rounded-2xl bg-white border border-[#E2E1DC] shadow-soft">
+          <span className="text-[10px] font-bold text-[#434346] uppercase tracking-wider block">Customer Trust Score</span>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-2xl font-black text-teal-700">99 / 100</span>
+            <span className="text-[11px] font-semibold text-teal-700">High Credibility</span>
           </div>
-          <div className="text-2xl font-extrabold text-teal-700">98 / 100</div>
-          <p className="text-[11px] text-brand-muted mt-1">High credibility among active customers</p>
-        </Card>
+        </div>
       </div>
 
-      {/* Filter and Search Controls */}
-      <Card className="p-4 space-y-3 bg-white/90 border border-brand-border">
+      {/* 3. Filter and Search Bar with Theme Toggle */}
+      <div className="p-4 rounded-2xl bg-white border border-[#E2E1DC] shadow-soft space-y-3">
         <div className="flex flex-col md:flex-row gap-3">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-brand-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#73726E] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by customer name, review keyword, order ref, or product..."
-              className="w-full pl-10 pr-4 py-2 text-xs rounded-2xl bg-brand-surface-light border border-brand-border focus:bg-white focus:outline-none focus:border-[#111312] transition-all"
+              placeholder="Search by customer name, review quote, order reference, or purchased product..."
+              className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-[#FAF9F5] border border-[#E2E1DC] focus:bg-white focus:outline-none focus:border-[#111312] transition-all text-[#111312] placeholder-[#8A8984]"
             />
           </div>
 
@@ -265,7 +308,7 @@ export const CustomerReviewsPage: React.FC = () => {
           <select
             value={ratingFilter}
             onChange={(e) => setRatingFilter(e.target.value)}
-            className="px-3 py-2 text-xs rounded-2xl bg-brand-surface-light border border-brand-border focus:outline-none focus:border-[#111312] text-brand-dark"
+            className="px-3 py-2 text-xs rounded-xl bg-[#FAF9F5] border border-[#E2E1DC] focus:outline-none focus:border-[#111312] text-[#111312] font-semibold"
           >
             <option value="all">All Star Ratings</option>
             <option value="5">5 Stars (★★★★★)</option>
@@ -279,31 +322,59 @@ export const CustomerReviewsPage: React.FC = () => {
           <select
             value={proofTypeFilter}
             onChange={(e) => setProofTypeFilter(e.target.value)}
-            className="px-3 py-2 text-xs rounded-2xl bg-brand-surface-light border border-brand-border focus:outline-none focus:border-[#111312] text-brand-dark"
+            className="px-3 py-2 text-xs rounded-xl bg-[#FAF9F5] border border-[#E2E1DC] focus:outline-none focus:border-[#111312] text-[#111312] font-semibold"
           >
             <option value="all">All Verified Proof Types</option>
             <option value="invoice_receipt">Invoice / Receipt Upload</option>
             <option value="transaction_ref">Transaction Reference</option>
             <option value="phone_otp_and_contract">Phone OTP & Contract</option>
-            <option value="crypto_tx_or_order">Order ID / Cryptographic Tx</option>
+            <option value="crypto_tx_or_order">Cryptographic Order Digest</option>
           </select>
 
           {/* Brand Response Filter */}
           <select
             value={responseFilter}
             onChange={(e) => setResponseFilter(e.target.value)}
-            className="px-3 py-2 text-xs rounded-2xl bg-brand-surface-light border border-brand-border focus:outline-none focus:border-[#111312] text-brand-dark"
+            className="px-3 py-2 text-xs rounded-xl bg-[#FAF9F5] border border-[#E2E1DC] focus:outline-none focus:border-[#111312] text-[#111312] font-semibold"
           >
             <option value="all">All Response States</option>
-            <option value="replied">Responded by Brand Owner</option>
+            <option value="replied">Responded by Brand</option>
             <option value="pending">Awaiting Brand Response</option>
           </select>
+
+          {/* Card Theme Toggle (Dark cards matching reference vs Light cards) */}
+          <div className="flex items-center gap-1 p-1 bg-[#FAF9F5] border border-[#E2E1DC] rounded-xl self-start md:self-auto">
+            <button
+              onClick={() => setCardTheme('dark')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                cardTheme === 'dark' 
+                  ? 'bg-[#111312] text-white shadow-xs' 
+                  : 'text-[#434346] hover:text-[#111312]'
+              }`}
+              title="Dark Card Theme (Reference Style)"
+            >
+              <Moon className="w-3.5 h-3.5" />
+              <span>Dark Grid</span>
+            </button>
+            <button
+              onClick={() => setCardTheme('light')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                cardTheme === 'light' 
+                  ? 'bg-white text-[#111312] shadow-xs border border-[#E2E1DC]' 
+                  : 'text-[#434346] hover:text-[#111312]'
+              }`}
+              title="Light Card Theme"
+            >
+              <Sun className="w-3.5 h-3.5" />
+              <span>Light Grid</span>
+            </button>
+          </div>
         </div>
 
-        {/* Active Filter Tags */}
-        <div className="flex items-center justify-between text-xs text-brand-muted pt-1 border-t border-brand-border/40">
+        {/* Active Filter Tags Bar */}
+        <div className="flex items-center justify-between text-xs text-[#73726E] pt-2 border-t border-[#E2E1DC]">
           <div>
-            Showing <strong className="text-brand-dark">{filteredReviews.length}</strong> of {totalReviewsCount} verified reviews
+            Showing <strong className="text-[#111312]">{filteredReviews.length}</strong> of {totalReviewsCount} verified customer reviews
           </div>
           {(searchQuery || ratingFilter !== 'all' || proofTypeFilter !== 'all' || responseFilter !== 'all') && (
             <button
@@ -319,77 +390,225 @@ export const CustomerReviewsPage: React.FC = () => {
             </button>
           )}
         </div>
-      </Card>
+      </div>
 
-      {/* Reviews Stream */}
-      <div className="space-y-5">
+      {/* 4. REDESIGNED REVIEWS GRID (Matching Reference Image media_1791654513065.png) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredReviews.length === 0 ? (
-          <Card className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#F4F3EF] text-brand-muted flex items-center justify-center mx-auto border border-[#DCDAD4]">
+          <div className="col-span-full p-16 text-center space-y-3 bg-white rounded-3xl border border-[#E2E1DC]">
+            <div className="w-12 h-12 rounded-2xl bg-[#F4F3EF] text-[#73726E] flex items-center justify-center mx-auto border border-[#DCDAD4]">
               <MessageSquareHeart className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-brand-dark">No verified customer reviews match your filters</h3>
-            <p className="text-xs text-brand-muted max-w-sm mx-auto">
+            <h3 className="text-base font-bold text-[#111312]">No verified customer reviews match your filters</h3>
+            <p className="text-xs text-[#73726E] max-w-sm mx-auto">
               Try adjusting your search query, proof type filter, or rating selection to view more verified customer reviews.
             </p>
-          </Card>
+          </div>
         ) : (
           filteredReviews.map((rev) => {
-            const proofBadge = getProofTypeBadge(rev.verifiedProof?.type);
+            const isDark = cardTheme === 'dark';
+            const proofBadge = getProofTypeBadge(rev.verifiedProof?.type, isDark);
             const ProofIcon = proofBadge.icon;
+            const avatarGradient = getAvatarGradient(rev.userName);
 
             return (
-              <Card key={rev.id} className="p-5 space-y-4 border border-brand-border hover:border-[#111312]/40 transition-all bg-white">
-                
-                {/* Header: Customer Info, Verification Badges, Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-brand-border/60">
-                  <div className="flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-[#111312] text-[#FBF5A5] flex items-center justify-center font-extrabold text-sm border border-[#2B2D2C] shrink-0">
-                      {rev.userName.slice(0, 1)}
-                    </div>
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="text-sm font-bold text-brand-dark">{rev.userName}</h4>
-                        {rev.userPhoneMasked && (
-                          <span className="text-[11px] text-brand-muted font-mono">({rev.userPhoneMasked})</span>
-                        )}
-                        {rev.isPhoneVerified && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
-                            <CheckCircle2 className="w-2.5 h-2.5" /> Phone OTP Verified
-                          </span>
-                        )}
-                        <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 font-bold border border-teal-200">
-                          <ShieldCheck className="w-2.5 h-2.5" /> Verified Customer Only
-                        </span>
-                      </div>
+              <div
+                key={rev.id}
+                className={`rounded-3xl p-6 transition-all duration-300 flex flex-col justify-between relative group ${
+                  isDark
+                    ? 'bg-[#111215] text-white border border-[#23252B] hover:border-[#FBF5A5]/80 shadow-xl'
+                    : 'bg-white text-[#111312] border border-[#E2E1DC] hover:border-[#111312] shadow-soft hover:shadow-xl'
+                }`}
+              >
+                {/* Top Section: Prominent Quote Header (Inspired by reference image) */}
+                <div className="space-y-4">
+                  {/* Big Bold Quotation Title */}
+                  <div>
+                    <h3 className={`text-base sm:text-lg font-black tracking-tight leading-snug ${
+                      isDark ? 'text-white' : 'text-[#111312]'
+                    }`}>
+                      “{rev.title}”
+                    </h3>
 
-                      {/* Stars & Timestamp */}
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center gap-0.5 text-amber-500">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3.5 h-3.5 ${i < rev.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-[11px] font-bold text-brand-dark">{rev.rating}.0 / 5.0</span>
-                        <span className="text-[10px] text-brand-muted">•</span>
-                        <span className="text-[11px] text-brand-muted flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(rev.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </span>
+                    {/* Star Rating & Timestamp */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-0.5 text-amber-400">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3.5 h-3.5 ${
+                              i < rev.rating 
+                                ? 'fill-amber-400 text-amber-400' 
+                                : isDark ? 'text-neutral-700' : 'text-neutral-300'
+                            }`}
+                          />
+                        ))}
                       </div>
+                      <span className={`text-[11px] font-bold ${isDark ? 'text-[#FBF5A5]' : 'text-[#111312]'}`}>
+                        {rev.rating}.0
+                      </span>
+                      <span className="text-[10px] text-neutral-500">•</span>
+                      <span className={`text-[11px] flex items-center gap-1 ${isDark ? 'text-neutral-400' : 'text-[#73726E]'}`}>
+                        <Calendar className="w-3 h-3" />
+                        {new Date(rev.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Actions: Reply Button & Proof Inspector Button */}
-                  <div className="flex items-center gap-2 self-start sm:self-center">
+                  {/* Review Description Body */}
+                  <p className={`text-xs sm:text-sm leading-relaxed ${
+                    isDark ? 'text-[#9E9EA4]' : 'text-[#434346]'
+                  }`}>
+                    {rev.comment}
+                  </p>
+
+                  {/* Purchased Product Information Tag */}
+                  {rev.verifiedProof?.productOrServicePurchased && (
+                    <div className={`p-2.5 rounded-xl border flex items-center justify-between text-xs gap-2 ${
+                      isDark 
+                        ? 'bg-[#18191E] border-[#2A2B32] text-neutral-300' 
+                        : 'bg-[#F8F7F4] border-[#E2E1DC] text-[#434346]'
+                    }`}>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <ShoppingBag className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span className="font-semibold truncate">
+                          {rev.verifiedProof.productOrServicePurchased}
+                        </span>
+                      </div>
+                      {rev.verifiedProof.orderAmount && (
+                        <span className={`font-mono font-bold text-[10px] px-2 py-0.5 rounded-md shrink-0 ${
+                          isDark 
+                            ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800' 
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}>
+                          {rev.verifiedProof.orderAmount}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Proof Certificate Preview Strip */}
+                  {rev.verifiedProof && (
+                    <div className={`p-3 rounded-2xl border flex items-center justify-between gap-3 ${
+                      isDark 
+                        ? 'bg-[#18191E] border-[#2A2B32]' 
+                        : 'bg-[#FAF9F5] border-[#E2E1DC]'
+                    }`}>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`p-1.5 rounded-lg shrink-0 ${
+                          isDark ? 'bg-[#22242B] text-emerald-400' : 'bg-white text-[#111312] border border-[#E2E1DC]'
+                        }`}>
+                          <ProofIcon className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${proofBadge.style}`}>
+                              {proofBadge.label}
+                            </span>
+                          </div>
+                          <p className={`text-[11px] font-mono font-semibold truncate mt-0.5 ${
+                            isDark ? 'text-neutral-400' : 'text-[#73726E]'
+                          }`}>
+                            Ref: {rev.verifiedProof.referenceId} &bull; {rev.verifiedProof.proofScore}% Validated
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleOpenProofInspector(rev)}
+                        className={`text-xs font-bold shrink-0 flex items-center gap-1 hover:underline ${
+                          isDark ? 'text-[#FBF5A5]' : 'text-[#111312]'
+                        }`}
+                        title="View Full Proof Certificate"
+                      >
+                        <span className="hidden sm:inline">Proof</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Official Brand Response Quote Box */}
+                  {rev.brandResponse && (
+                    <div className={`p-3.5 rounded-2xl border space-y-1.5 border-l-4 ${
+                      isDark 
+                        ? 'bg-[#18191E] border-[#2A2B32] border-l-[#FBF5A5]' 
+                        : 'bg-[#F4F3EF] border-[#E2E1DC] border-l-[#111312]'
+                    }`}>
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <ShieldCheck className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-[#FBF5A5]' : 'text-[#111312]'}`} />
+                          <span className={isDark ? 'text-[#FBF5A5]' : 'text-[#111312]'}>
+                            Official Response from {rev.brandResponse.responderName}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-neutral-500">
+                          {new Date(rev.brandResponse.respondedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                      <p className={`text-xs leading-relaxed ${isDark ? 'text-neutral-300' : 'text-[#434346]'}`}>
+                        {rev.brandResponse.response}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Section: Customer Details & Actions Bar (Matching reference bottom row) */}
+                <div className={`pt-5 mt-5 border-t space-y-3 ${
+                  isDark ? 'border-[#23252B]' : 'border-[#E2E1DC]'
+                }`}>
+                  {/* Customer Avatar & Details Bar */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Avatar */}
+                      <div className={`w-10 h-10 rounded-full bg-gradient-to-tr ${avatarGradient} flex items-center justify-center font-black text-sm text-white shrink-0 shadow-sm`}>
+                        {rev.userName.slice(0, 1)}
+                      </div>
+
+                      {/* Name & Masked Phone / Role */}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h4 className={`text-sm font-extrabold truncate ${
+                            isDark ? 'text-white' : 'text-[#111312]'
+                          }`}>
+                            {rev.userName}
+                          </h4>
+                          {rev.isPhoneVerified && (
+                            <span title="Phone OTP Authenticated">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-[11px] truncate ${
+                          isDark ? 'text-[#8A8A92]' : 'text-[#73726E]'
+                        }`}>
+                          {rev.userPhoneMasked || '@verified_customer'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Helpful count */}
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-xl shrink-0 ${
+                      isDark 
+                        ? 'bg-[#1C1D24] text-neutral-300 border border-[#2D2E38]' 
+                        : 'bg-[#F4F3EF] text-[#434346] border border-[#DCDAD4]'
+                    }`}>
+                      <ThumbsUp className="w-3 h-3 text-amber-500" />
+                      <span>{rev.upvotesCount}</span>
+                    </span>
+                  </div>
+
+                  {/* Brand Owner Action Buttons */}
+                  <div className="flex items-center gap-2 pt-1">
                     <Button 
-                      variant="outline" 
+                      variant={isDark ? 'outline' : 'outline'} 
                       size="sm" 
                       onClick={() => handleOpenProofInspector(rev)}
-                      leftIcon={<Eye className="w-3.5 h-3.5 text-[#111312]" />}
+                      leftIcon={<Eye className="w-3.5 h-3.5" />}
+                      className={`flex-1 ${
+                        isDark 
+                          ? 'border-[#33353E] text-white hover:bg-[#1E2028]' 
+                          : 'border-[#E2E1DC] text-[#111312]'
+                      }`}
                     >
                       Inspect Proof
                     </Button>
@@ -398,101 +617,14 @@ export const CustomerReviewsPage: React.FC = () => {
                       size="sm" 
                       onClick={() => handleOpenReply(rev)} 
                       leftIcon={<Reply className="w-3.5 h-3.5" />}
+                      className="flex-1"
                     >
-                      {rev.brandResponse ? 'Edit Response' : 'Reply as Brand'}
+                      {rev.brandResponse ? 'Edit Reply' : 'Reply as Brand'}
                     </Button>
                   </div>
                 </div>
 
-                {/* Product/Service Purchased Tag */}
-                {rev.verifiedProof?.productOrServicePurchased && (
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-brand-muted font-medium">Purchased Product / Service:</span>
-                    <span className="font-bold text-brand-dark px-2.5 py-0.5 rounded-lg bg-brand-surface border border-brand-border">
-                      {rev.verifiedProof.productOrServicePurchased}
-                    </span>
-                    {rev.verifiedProof.orderAmount && (
-                      <span className="text-emerald-700 font-extrabold text-[11px] px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
-                        {rev.verifiedProof.orderAmount}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Review Content */}
-                <div>
-                  <h3 className="text-base font-bold text-brand-dark">{rev.title}</h3>
-                  <p className="text-xs sm:text-sm text-brand-muted mt-1 leading-relaxed">{rev.comment}</p>
-                </div>
-
-                {/* Verified Proof Banner Box */}
-                {rev.verifiedProof && (
-                  <div className="p-3.5 rounded-2xl bg-[#F8F7F4] border border-[#E2E1DC] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-start sm:items-center gap-2.5">
-                      <div className="p-2 rounded-xl bg-white border border-[#DCDAD4] shrink-0 shadow-xs">
-                        <ProofIcon className="w-4 h-4 text-[#111312]" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${proofBadge.color}`}>
-                            {proofBadge.label}
-                          </span>
-                          <span className="text-xs font-mono font-bold text-brand-dark truncate">
-                            Ref: {rev.verifiedProof.referenceId}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-brand-muted mt-0.5 flex items-center gap-1.5 truncate">
-                          <FileText className="w-3 h-3 text-brand-muted shrink-0" />
-                          <span className="truncate">{rev.verifiedProof.proofFileName}</span>
-                          <span>•</span>
-                          <span className="text-emerald-700 font-semibold">Proof Score: {rev.verifiedProof.proofScore}% Validated</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleOpenProofInspector(rev)}
-                      className="text-xs text-[#111312] hover:underline font-bold flex items-center gap-1 shrink-0"
-                    >
-                      <span>View Proof Certificate</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Official Brand Response */}
-                {rev.brandResponse && (
-                  <div className="p-4 rounded-2xl bg-white border border-[#E2E1DC] space-y-2 border-l-4 border-l-[#111312] mt-2 shadow-sm">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-                      <div className="flex items-center gap-1.5 font-bold text-[#111312]">
-                        <ShieldCheck className="w-4 h-4 text-[#111312] shrink-0" />
-                        <span>Official Response from {rev.brandResponse.responderName}</span>
-                        <span className="text-[10px] text-brand-muted font-normal">({rev.brandResponse.responderRole})</span>
-                      </div>
-                      <span className="text-[10px] text-brand-muted">
-                        Responded {new Date(rev.brandResponse.respondedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                    <p className="text-xs text-brand-dark leading-relaxed">
-                      {rev.brandResponse.response}
-                    </p>
-                  </div>
-                )}
-
-                {/* Footer: Upvotes & Triage Status */}
-                <div className="flex items-center justify-between pt-2 text-xs text-brand-muted">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-brand-dark font-medium bg-[#F4F3EF] px-2.5 py-1 rounded-xl border border-[#DCDAD4]">
-                      <ThumbsUp className="w-3.5 h-3.5 text-[#111312]" />
-                      <span>{rev.upvotesCount} customers found this verified review helpful</span>
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-brand-muted">
-                    ID: <span className="font-mono">{rev.id}</span>
-                  </div>
-                </div>
-
-              </Card>
+              </div>
             );
           })
         )}
@@ -516,11 +648,11 @@ export const CustomerReviewsPage: React.FC = () => {
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-extrabold text-brand-dark flex items-center gap-1.5">
+                  <h4 className="text-sm font-extrabold text-[#111312] flex items-center gap-1.5">
                     Cryptographically Verified Authentic Review
                   </h4>
                   <p className="text-[11px] text-emerald-800 font-medium">
-                    Validated by BrandShield Customer Proof Node • Anti-Fraud Score: {inspectingReview.verifiedProof.proofScore}%
+                    Validated by Customer Proof Node • Anti-Fraud Score: {inspectingReview.verifiedProof.proofScore}%
                   </p>
                 </div>
               </div>
@@ -529,35 +661,35 @@ export const CustomerReviewsPage: React.FC = () => {
 
             {/* Proof Metadata Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-2xl bg-brand-surface-light border border-brand-border space-y-1">
-                <span className="text-brand-muted font-medium">Customer Full Name & OTP:</span>
-                <p className="font-bold text-brand-dark flex items-center gap-1.5">
+              <div className="p-3 rounded-2xl bg-[#F8F7F4] border border-[#E2E1DC] space-y-1">
+                <span className="text-[#73726E] font-medium">Customer Full Name & OTP:</span>
+                <p className="font-bold text-[#111312] flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  {inspectingReview.userName} <span className="text-brand-muted font-mono">({inspectingReview.userPhoneMasked})</span>
+                  {inspectingReview.userName} <span className="text-[#73726E] font-mono">({inspectingReview.userPhoneMasked})</span>
                 </p>
                 <p className="text-[10px] text-emerald-700 font-semibold">✓ SMS One-Time Passcode Authenticated</p>
               </div>
 
-              <div className="p-3 rounded-2xl bg-brand-surface-light border border-brand-border space-y-1">
-                <span className="text-brand-muted font-medium">Proof Reference ID:</span>
-                <p className="font-bold text-brand-dark font-mono flex items-center gap-1.5">
+              <div className="p-3 rounded-2xl bg-[#F8F7F4] border border-[#E2E1DC] space-y-1">
+                <span className="text-[#73726E] font-medium">Proof Reference ID:</span>
+                <p className="font-bold text-[#111312] font-mono flex items-center gap-1.5">
                   <Receipt className="w-3.5 h-3.5 text-[#111312]" />
                   {inspectingReview.verifiedProof.referenceId}
                 </p>
-                <p className="text-[10px] text-brand-muted">Amount: {inspectingReview.verifiedProof.orderAmount || 'Verified Service Agreement'}</p>
+                <p className="text-[10px] text-[#73726E]">Amount: {inspectingReview.verifiedProof.orderAmount || 'Verified Service Agreement'}</p>
               </div>
 
-              <div className="p-3 rounded-2xl bg-brand-surface-light border border-brand-border space-y-1">
-                <span className="text-brand-muted font-medium">Product / Plan / Subscription:</span>
-                <p className="font-bold text-brand-dark">
+              <div className="p-3 rounded-2xl bg-[#F8F7F4] border border-[#E2E1DC] space-y-1">
+                <span className="text-[#73726E] font-medium">Product / Plan / Subscription:</span>
+                <p className="font-bold text-[#111312]">
                   {inspectingReview.verifiedProof.productOrServicePurchased}
                 </p>
               </div>
 
-              <div className="p-3 rounded-2xl bg-brand-surface-light border border-brand-border space-y-1">
-                <span className="text-brand-muted font-medium">Verification Timestamp:</span>
-                <p className="font-bold text-brand-dark flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-brand-muted" />
+              <div className="p-3 rounded-2xl bg-[#F8F7F4] border border-[#E2E1DC] space-y-1">
+                <span className="text-[#73726E] font-medium">Verification Timestamp:</span>
+                <p className="font-bold text-[#111312] flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-[#73726E]" />
                   {new Date(inspectingReview.verifiedProof.verificationTimestamp).toLocaleString()}
                 </p>
               </div>
@@ -567,7 +699,7 @@ export const CustomerReviewsPage: React.FC = () => {
             {inspectingReview.verifiedProof.cryptographicHash && (
               <div className="p-3 rounded-2xl bg-[#F4F3EF] border border-[#DCDAD4] space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-brand-dark flex items-center gap-1">
+                  <span className="font-bold text-[#111312] flex items-center gap-1">
                     <Hash className="w-3.5 h-3.5 text-[#111312]" />
                     Cryptographic Proof SHA-256 Digest
                   </span>
@@ -579,7 +711,7 @@ export const CustomerReviewsPage: React.FC = () => {
                     <span>{copiedHash ? 'Copied' : 'Copy Hash'}</span>
                   </button>
                 </div>
-                <div className="font-mono text-[10px] text-brand-muted bg-white p-2 rounded-xl border border-brand-border break-all select-all">
+                <div className="font-mono text-[10px] text-[#434346] bg-white p-2 rounded-xl border border-[#E2E1DC] break-all select-all">
                   {inspectingReview.verifiedProof.cryptographicHash}
                 </div>
               </div>
@@ -588,11 +720,11 @@ export const CustomerReviewsPage: React.FC = () => {
             {/* Proof Document Screenshot Preview */}
             {inspectingReview.verifiedProof.proofFileUrl && (
               <div className="space-y-1.5">
-                <span className="text-xs font-bold text-brand-dark flex items-center gap-1">
+                <span className="text-xs font-bold text-[#111312] flex items-center gap-1">
                   <FileText className="w-3.5 h-3.5 text-[#111312]" />
                   Proof Document Snapshot ({inspectingReview.verifiedProof.proofFileName})
                 </span>
-                <div className="relative rounded-2xl overflow-hidden border border-brand-border max-h-56 bg-brand-dark/5 flex items-center justify-center">
+                <div className="relative rounded-2xl overflow-hidden border border-[#E2E1DC] max-h-56 bg-neutral-100 flex items-center justify-center">
                   <img
                     src={inspectingReview.verifiedProof.proofFileUrl}
                     alt="Proof Attachment"
@@ -606,7 +738,7 @@ export const CustomerReviewsPage: React.FC = () => {
             )}
 
             {/* Modal Actions */}
-            <div className="flex justify-end gap-3 pt-3 border-t border-brand-border/60">
+            <div className="flex justify-end gap-3 pt-3 border-t border-[#E2E1DC]">
               <Button variant="outline" onClick={() => setProofModalOpen(false)}>
                 Close Inspector
               </Button>
@@ -634,9 +766,9 @@ export const CustomerReviewsPage: React.FC = () => {
         maxWidth="md"
       >
         <form onSubmit={handleSendResponse} className="space-y-4">
-          <div className="p-3 rounded-2xl bg-brand-surface-light border border-brand-border text-xs">
-            <span className="font-bold text-brand-dark">Responding to customer review by {selectedReview?.userName}:</span>
-            <p className="text-brand-muted italic mt-1 font-serif">"{selectedReview?.title}"</p>
+          <div className="p-3 rounded-2xl bg-[#F8F7F4] border border-[#E2E1DC] text-xs">
+            <span className="font-bold text-[#111312]">Responding to customer review by {selectedReview?.userName}:</span>
+            <p className="text-[#434346] italic mt-1 font-serif">"{selectedReview?.title}"</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -670,7 +802,7 @@ export const CustomerReviewsPage: React.FC = () => {
             <span>This response will carry the official verified brand security seal.</span>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-brand-border/60">
+          <div className="flex justify-end gap-3 pt-3 border-t border-[#E2E1DC]">
             <Button type="button" variant="outline" onClick={() => setReplyModalOpen(false)}>
               Cancel
             </Button>

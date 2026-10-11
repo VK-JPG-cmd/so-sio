@@ -70,10 +70,10 @@ export const RecommendedActionsPage: React.FC = () => {
     },
     {
       id: 'act_4',
-      title: 'Add Typosquat Domain to Global DNS Sinkhole & Browser Blocklists',
+      title: 'Block Lookalike Website on Browser Warning Lists',
       threatTarget: 'apexbaank.com',
       category: 'dns_block',
-      description: 'Publish telemetry IOC to Google Safe Browsing and Microsoft SmartScreen to protect users attempting navigation.',
+      description: 'Submit technical evidence to Google Safe Browsing and Microsoft SmartScreen to automatically warn customers who click the link.',
       status: 'completed',
       urgency: 'high',
       completedAt: '2 hours ago'
@@ -128,7 +128,7 @@ export const RecommendedActionsPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <Link to="/brand-owner/ai-threat-explanation">
             <Button variant="outline" size="sm" leftIcon={<Sparkles className="w-4 h-4" />}>
-              AI Threat Explanation
+              Why is this a threat?
             </Button>
           </Link>
           <Link to="/brand-owner/threat-management">

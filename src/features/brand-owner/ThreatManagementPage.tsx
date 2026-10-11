@@ -21,9 +21,16 @@ import {
   AlertTriangle,
   Globe2,
   Smartphone,
-  Users2
+  Users2,
+  RotateCcw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { 
+  DateFilterDropdown, 
+  DateFilterValue, 
+  ThreatFilterDropdown, 
+  ThreatFilterKey 
+} from '../../components/ui/filters';
 
 export const ThreatManagementPage: React.FC = () => {
   const { currentBrand } = useBrand();
@@ -36,8 +43,15 @@ export const ThreatManagementPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [threatFilter, setThreatFilter] = useState<ThreatFilterKey>(
+    (searchParams.get('severity') as ThreatFilterKey) || 
+    (searchParams.get('status') as ThreatFilterKey) || 
+    'all'
+  );
+  const [dateFilter, setDateFilter] = useState<DateFilterValue>({
+    preset: '30d',
+    label: '30 days'
+  });
   const [selectedPlatform, setSelectedPlatform] = useState<string>(searchParams.get('category') || 'all');
 
   useEffect(() => {
@@ -58,10 +72,44 @@ export const ThreatManagementPage: React.FC = () => {
     loadThreats();
   }, [currentBrand]);
 
+  // Compute live threat counts by filter option for the dropdown badges
+  const threatFilterCounts = React.useMemo(() => {
+    const anchorTimestamp = new Date('2026-10-10T23:59:59Z').getTime();
+    const inDateThreats = threats.filter((t) => {
+      const threatTime = new Date(t.firstSeenAt).getTime();
+      if (dateFilter.preset === 'custom' && dateFilter.startDate && dateFilter.endDate) {
+        const start = new Date(`${dateFilter.startDate}T00:00:00Z`).getTime();
+        const end = new Date(`${dateFilter.endDate}T23:59:59Z`).getTime();
+        return threatTime >= start && threatTime <= end;
+      }
+      const days = 
+        dateFilter.preset === '7d' ? 7 :
+        dateFilter.preset === '14d' ? 14 :
+        dateFilter.preset === '30d' ? 30 :
+        dateFilter.preset === '60d' ? 60 :
+        dateFilter.preset === '90d' ? 90 : 30;
+      return threatTime >= (anchorTimestamp - days * 24 * 60 * 60 * 1000);
+    });
+
+    return {
+      all: inDateThreats.length,
+      critical: inDateThreats.filter(t => t.severity === 'critical').length,
+      high: inDateThreats.filter(t => t.severity === 'high').length,
+      medium: inDateThreats.filter(t => t.severity === 'medium').length,
+      low: inDateThreats.filter(t => t.severity === 'low').length,
+      active: inDateThreats.filter(t => t.status === 'active').length,
+      under_investigation: inDateThreats.filter(t => t.status === 'under_investigation').length,
+      takedown_requested: inDateThreats.filter(t => t.status === 'takedown_requested').length,
+      resolved: inDateThreats.filter(t => t.status === 'resolved').length,
+    };
+  }, [threats, dateFilter]);
+
   // Handle Filtering & Searching
   useEffect(() => {
     let result = [...threats];
+    const anchorTimestamp = new Date('2026-10-10T23:59:59Z').getTime();
 
+    // 1. Search Query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(t => 
@@ -71,20 +119,40 @@ export const ThreatManagementPage: React.FC = () => {
       );
     }
 
-    if (selectedSeverity !== 'all') {
-      result = result.filter(t => t.severity === selectedSeverity);
+    // 2. Date Range Filter
+    result = result.filter((t) => {
+      const threatTime = new Date(t.firstSeenAt).getTime();
+      if (dateFilter.preset === 'custom' && dateFilter.startDate && dateFilter.endDate) {
+        const start = new Date(`${dateFilter.startDate}T00:00:00Z`).getTime();
+        const end = new Date(`${dateFilter.endDate}T23:59:59Z`).getTime();
+        return threatTime >= start && threatTime <= end;
+      }
+      const days = 
+        dateFilter.preset === '7d' ? 7 :
+        dateFilter.preset === '14d' ? 14 :
+        dateFilter.preset === '30d' ? 30 :
+        dateFilter.preset === '60d' ? 60 :
+        dateFilter.preset === '90d' ? 90 : 30;
+      const cutoff = anchorTimestamp - (days * 24 * 60 * 60 * 1000);
+      return threatTime >= cutoff;
+    });
+
+    // 3. Unified Threat Filter (Severity or Status)
+    if (threatFilter !== 'all') {
+      if (['critical', 'high', 'medium', 'low'].includes(threatFilter)) {
+        result = result.filter(t => t.severity === threatFilter);
+      } else if (['active', 'under_investigation', 'takedown_requested', 'resolved'].includes(threatFilter)) {
+        result = result.filter(t => t.status === threatFilter);
+      }
     }
 
-    if (selectedStatus !== 'all') {
-      result = result.filter(t => t.status === selectedStatus);
-    }
-
+    // 4. Platform Filter
     if (selectedPlatform !== 'all') {
       result = result.filter(t => t.category.includes(selectedPlatform));
     }
 
     setFilteredThreats(result);
-  }, [searchQuery, selectedSeverity, selectedStatus, selectedPlatform, threats]);
+  }, [searchQuery, threatFilter, dateFilter, selectedPlatform, threats]);
 
   const handleQuickTakedown = async (threatId: string, domain: string) => {
     try {
@@ -127,72 +195,76 @@ export const ThreatManagementPage: React.FC = () => {
           </Link>
           <Link to="/brand-owner/ai-threat-explanation">
             <Button size="sm" leftIcon={<Sparkles className="w-4 h-4" />}>
-              AI Threat Explanations
+              Why is this a threat?
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
+      {/* Filter & Search Bar with Reference Dropdowns */}
       <Card padding="sm" className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           
           {/* Search Input */}
-          <div className="lg:col-span-2 relative">
+          <div className="flex-1 relative min-w-[240px]">
             <Search className="w-4 h-4 text-brand-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search threat name, domain, URL, or keywords..."
+              placeholder="Search website, evidence, account name, ticket..."
               className="w-full pl-10 pr-4 py-2 text-xs rounded-2xl bg-brand-surface-light border border-brand-border focus:bg-white focus:outline-none focus:border-[#111312] transition-all"
             />
           </div>
 
-          {/* Severity Filter */}
-          <div>
-            <select
-              value={selectedSeverity}
-              onChange={(e) => setSelectedSeverity(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-semibold rounded-2xl bg-brand-surface-light border border-brand-border text-brand-dark focus:outline-none focus:border-[#111312]"
-            >
-              <option value="all">All Severities</option>
-              <option value="critical">Critical Severity</option>
-              <option value="high">High Severity</option>
-              <option value="medium">Medium Severity</option>
-              <option value="low">Low Severity</option>
-            </select>
-          </div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Threat Filter Dropdown */}
+            <ThreatFilterDropdown
+              value={threatFilter}
+              onChange={setThreatFilter}
+              counts={threatFilterCounts}
+              align="right"
+            />
 
-          {/* Status Filter */}
-          <div>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-semibold rounded-2xl bg-brand-surface-light border border-brand-border text-brand-dark focus:outline-none focus:border-[#111312]"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active Threats</option>
-              <option value="under_investigation">Under Investigation</option>
-              <option value="takedown_requested">Takedown In Progress</option>
-              <option value="resolved">Resolved / Blocked</option>
-              <option value="false_positive">Allowlisted / False Positive</option>
-            </select>
-          </div>
+            {/* Date Filter Dropdown */}
+            <DateFilterDropdown
+              value={dateFilter}
+              onChange={setDateFilter}
+              align="right"
+            />
 
-          {/* Platform / Vector Filter */}
-          <div>
-            <select
-              value={selectedPlatform}
-              onChange={(e) => setSelectedPlatform(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-semibold rounded-2xl bg-brand-surface-light border border-brand-border text-brand-dark focus:outline-none focus:border-[#111312]"
-            >
-              <option value="all">All Platforms</option>
-              <option value="phishing">Fake Websites (Phishing)</option>
-              <option value="typosquat">Typosquats</option>
-              <option value="social">Fake Social Profiles</option>
-              <option value="mobile">Suspicious Apps (APKs)</option>
-            </select>
+            {/* Platform / Vector Filter */}
+            <div className="min-w-[150px]">
+              <select
+                value={selectedPlatform}
+                onChange={(e) => setSelectedPlatform(e.target.value)}
+                className="w-full px-3 py-2 text-xs font-semibold rounded-2xl bg-white border border-[#E2E1DC] text-brand-dark focus:outline-none focus:border-[#111312] cursor-pointer shadow-xs"
+              >
+                <option value="all">All Threat Types</option>
+                <option value="phishing">Fake Websites</option>
+                <option value="typosquat">Lookalike websites</option>
+                <option value="social">Fake social accounts</option>
+                <option value="mobile">Fake mobile apps</option>
+              </select>
+            </div>
+
+            {/* Reset Filter Button */}
+            {(threatFilter !== 'all' || dateFilter.preset !== '30d' || selectedPlatform !== 'all' || searchQuery.trim()) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setThreatFilter('all');
+                  setDateFilter({ preset: '30d', label: '30 days' });
+                  setSelectedPlatform('all');
+                }}
+                className="inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-[#737478] hover:text-[#111312] transition-colors cursor-pointer"
+                title="Reset all filters"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Reset</span>
+              </button>
+            )}
           </div>
 
         </div>
@@ -202,7 +274,7 @@ export const ThreatManagementPage: React.FC = () => {
       <Card padding="none">
         <div className="p-4 border-b border-brand-border flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-brand-dark">Detected Threat Inventory</h3>
+            <h3 className="text-sm font-bold text-brand-dark">Threats found</h3>
             <p className="text-xs text-brand-muted">Showing {filteredThreats.length} matching threat records</p>
           </div>
         </div>
@@ -211,12 +283,11 @@ export const ThreatManagementPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-brand-surface-light text-brand-muted border-b border-brand-border font-semibold uppercase tracking-wider text-[10px]">
               <tr>
-                <th className="px-6 py-3.5">Threat Target / Name</th>
-                <th className="px-6 py-3.5">Platform</th>
-                <th className="px-6 py-3.5">Risk Score</th>
-                <th className="px-6 py-3.5">Severity</th>
-                <th className="px-6 py-3.5">Detected Date</th>
-                <th className="px-6 py-3.5">Status</th>
+                <th className="px-6 py-3.5">Threat Target</th>
+                <th className="px-6 py-3.5">Threat Type</th>
+                <th className="px-6 py-3.5">Risk Level</th>
+                <th className="px-6 py-3.5">First Detected</th>
+                <th className="px-6 py-3.5">Current Status</th>
                 <th className="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
@@ -224,6 +295,15 @@ export const ThreatManagementPage: React.FC = () => {
               {filteredThreats.length > 0 ? (
                 filteredThreats.map((threat) => {
                   const PlatformIcon = getPlatformIcon(threat.category);
+
+                  const friendlyCategoryName = 
+                    threat.category === 'typosquatting' ? 'Lookalike website' :
+                    threat.category === 'social_impersonation' ? 'Fake social account' :
+                    threat.category === 'executive_impersonation' ? 'Fake executive profile' :
+                    threat.category === 'mobile_malware' ? 'Fake mobile app' :
+                    threat.category === 'credential_harvesting' ? 'Password theft site' :
+                    threat.category === 'scam_advertisement' ? 'Fake advertisement' :
+                    'Fake website';
 
                   return (
                     <tr key={threat.id} className="hover:bg-brand-surface-light/40 transition-colors">
@@ -247,19 +327,22 @@ export const ThreatManagementPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Platform */}
+                      {/* Threat Type */}
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F4F3EF] text-[#111312] font-semibold text-[11px] border border-[#DCDAD4]">
                           <PlatformIcon className="w-3.5 h-3.5 text-[#434346]" />
-                          <span className="capitalize">{threat.category.replace(/_/g, ' ')}</span>
+                          <span>{friendlyCategoryName}</span>
                         </span>
                       </td>
 
-                      {/* Risk Score */}
+                      {/* Risk Level */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-brand-dark text-sm">{threat.riskScore}</span>
-                          <div className="w-12 h-1.5 bg-brand-surface rounded-full overflow-hidden">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-brand-dark text-xs">{threat.riskScore}/100</span>
+                            <Badge severity={threat.severity} size="sm" />
+                          </div>
+                          <div className="w-20 h-1.5 bg-brand-surface rounded-full overflow-hidden">
                             <div
                               className={`h-full ${
                                 threat.riskScore >= 90 ? 'bg-rose-600' :
@@ -272,19 +355,18 @@ export const ThreatManagementPage: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Severity */}
-                      <td className="px-6 py-4">
-                        <Badge severity={threat.severity} />
-                      </td>
-
                       {/* Detected Date */}
-                      <td className="px-6 py-4 text-brand-muted text-[11px]">
-                        {new Date(threat.firstSeenAt).toLocaleDateString()}
+                      <td className="px-6 py-4 text-brand-muted whitespace-nowrap text-[11px]">
+                        {new Date(threat.firstSeenAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
                       </td>
 
-                      {/* Status */}
-                      <td className="px-6 py-4">
-                        <Badge status={threat.status} />
+                      {/* Current Status */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge status={threat.status} size="sm" />
                       </td>
 
                       {/* Action Buttons */}

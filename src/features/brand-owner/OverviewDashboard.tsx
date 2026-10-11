@@ -25,7 +25,9 @@ import {
   AlertOctagon,
   Lightbulb,
   Crosshair,
-  Shield
+  Shield,
+  RotateCcw,
+  SlidersHorizontal
 } from 'lucide-react';
 import { 
   AreaChart, 
@@ -38,6 +40,12 @@ import {
   Pie, 
   Cell 
 } from 'recharts';
+import { 
+  DateFilterDropdown, 
+  DateFilterValue, 
+  ThreatFilterDropdown, 
+  ThreatFilterKey 
+} from '../../components/ui/filters';
 
 export const OverviewDashboard: React.FC = () => {
   const { currentBrand } = useBrand();
@@ -45,6 +53,13 @@ export const OverviewDashboard: React.FC = () => {
   const [reports, setReports] = useState<CustomerReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Reference-styled filter states
+  const [dateFilter, setDateFilter] = useState<DateFilterValue>({
+    preset: '30d',
+    label: '30 days'
+  });
+  const [threatFilter, setThreatFilter] = useState<ThreatFilterKey>('all');
 
   useEffect(() => {
     const loadData = async () => {
@@ -65,42 +80,209 @@ export const OverviewDashboard: React.FC = () => {
     loadData();
   }, [currentBrand]);
 
-  // Chart data for Threat Activity Trend
-  const activityTrendData = [
-    { day: 'Mon', threats: 12, blocked: 10 },
-    { day: 'Tue', threats: 19, blocked: 16 },
-    { day: 'Wed', threats: 15, blocked: 14 },
-    { day: 'Thu', threats: 28, blocked: 24 },
-    { day: 'Fri', threats: 34, blocked: 31 },
-    { day: 'Sat', threats: 22, blocked: 20 },
-    { day: 'Sun', threats: 18, blocked: 18 },
-  ];
+  // Use October 10, 2026 as reference anchor so our mock dates match today's simulated timeframe
+  const anchorTimestamp = useMemo(() => {
+    return new Date('2026-10-10T23:59:59Z').getTime();
+  }, []);
 
-  // Category Distribution
-  const categoryData = [
-    { name: 'Phishing URLs', value: 45, color: '#C8485E' },
-    { name: 'Typosquatting', value: 28, color: '#B87B28' },
-    { name: 'Social Impersonation', value: 18, color: '#434346' },
-    { name: 'Rogue Mobile APKs', value: 9, color: '#111312' },
-  ];
+  // Filtered threats based on both Date Filter and Threat Filter
+  const filteredThreats = useMemo(() => {
+    return threats.filter((t) => {
+      // 1. Date Range Filter
+      const threatTime = new Date(t.firstSeenAt).getTime();
+      if (dateFilter.preset === 'custom' && dateFilter.startDate && dateFilter.endDate) {
+        const start = new Date(`${dateFilter.startDate}T00:00:00Z`).getTime();
+        const end = new Date(`${dateFilter.endDate}T23:59:59Z`).getTime();
+        if (threatTime < start || threatTime > end) return false;
+      } else {
+        const days = 
+          dateFilter.preset === '7d' ? 7 :
+          dateFilter.preset === '14d' ? 14 :
+          dateFilter.preset === '30d' ? 30 :
+          dateFilter.preset === '60d' ? 60 :
+          dateFilter.preset === '90d' ? 90 : 30;
+        const cutoff = anchorTimestamp - (days * 24 * 60 * 60 * 1000);
+        if (threatTime < cutoff) return false;
+      }
 
-  // Required KPI metrics
-  const activeThreatsCount = threats.filter(t => t.status === 'active' || t.status === 'under_investigation').length || 4;
-  const activeCampaignsCount = 1; // Active scam campaigns
-  const criticalThreatsCount = threats.filter(t => t.severity === 'critical').length || 2;
-  const threatsRemovedCount = currentBrand?.totalThreatsNeutralized || 138; // Threats removed / takedowns completed
+      // 2. Threat Filter (Severity or Status)
+      if (threatFilter === 'all') return true;
+      if (['critical', 'high', 'medium', 'low'].includes(threatFilter)) {
+        return t.severity === threatFilter;
+      }
+      if (['active', 'under_investigation', 'takedown_requested', 'resolved'].includes(threatFilter)) {
+        return t.status === threatFilter;
+      }
+      return true;
+    });
+  }, [threats, dateFilter, threatFilter, anchorTimestamp]);
 
-  // Dynamic Digital Risk Score and Level derived from threats data
+  // Compute live threat counts by filter option for the dropdown badges
+  const threatFilterCounts = useMemo(() => {
+    const inDateThreats = threats.filter((t) => {
+      const threatTime = new Date(t.firstSeenAt).getTime();
+      if (dateFilter.preset === 'custom' && dateFilter.startDate && dateFilter.endDate) {
+        const start = new Date(`${dateFilter.startDate}T00:00:00Z`).getTime();
+        const end = new Date(`${dateFilter.endDate}T23:59:59Z`).getTime();
+        return threatTime >= start && threatTime <= end;
+      }
+      const days = 
+        dateFilter.preset === '7d' ? 7 :
+        dateFilter.preset === '14d' ? 14 :
+        dateFilter.preset === '30d' ? 30 :
+        dateFilter.preset === '60d' ? 60 :
+        dateFilter.preset === '90d' ? 90 : 30;
+      return threatTime >= (anchorTimestamp - days * 24 * 60 * 60 * 1000);
+    });
+
+    return {
+      all: inDateThreats.length,
+      critical: inDateThreats.filter(t => t.severity === 'critical').length,
+      high: inDateThreats.filter(t => t.severity === 'high').length,
+      medium: inDateThreats.filter(t => t.severity === 'medium').length,
+      low: inDateThreats.filter(t => t.severity === 'low').length,
+      active: inDateThreats.filter(t => t.status === 'active').length,
+      under_investigation: inDateThreats.filter(t => t.status === 'under_investigation').length,
+      takedown_requested: inDateThreats.filter(t => t.status === 'takedown_requested').length,
+      resolved: inDateThreats.filter(t => t.status === 'resolved').length,
+    };
+  }, [threats, dateFilter, anchorTimestamp]);
+
+  // Dynamic Chart data for Threat Activity Trend adapting to selected timeframe & threat filter
+  const activityTrendData = useMemo(() => {
+    const countMultiplier = 
+      threatFilter === 'critical' ? 0.35 :
+      threatFilter === 'high' ? 0.45 :
+      threatFilter === 'medium' ? 0.25 :
+      threatFilter === 'low' ? 0.15 :
+      threatFilter === 'resolved' ? 0.5 : 1;
+
+    if (dateFilter.preset === '7d') {
+      return [
+        { day: 'Oct 4', threats: Math.max(1, Math.round(12 * countMultiplier)), blocked: Math.round(10 * countMultiplier) },
+        { day: 'Oct 5', threats: Math.max(1, Math.round(19 * countMultiplier)), blocked: Math.round(16 * countMultiplier) },
+        { day: 'Oct 6', threats: Math.max(1, Math.round(15 * countMultiplier)), blocked: Math.round(14 * countMultiplier) },
+        { day: 'Oct 7', threats: Math.max(2, Math.round(28 * countMultiplier)), blocked: Math.round(24 * countMultiplier) },
+        { day: 'Oct 8', threats: Math.max(2, Math.round(34 * countMultiplier)), blocked: Math.round(31 * countMultiplier) },
+        { day: 'Oct 9', threats: Math.max(1, Math.round(22 * countMultiplier)), blocked: Math.round(20 * countMultiplier) },
+        { day: 'Oct 10', threats: Math.max(1, Math.round(18 * countMultiplier)), blocked: Math.round(18 * countMultiplier) },
+      ];
+    } else if (dateFilter.preset === '14d') {
+      return [
+        { day: 'Sep 27', threats: Math.max(1, Math.round(14 * countMultiplier)), blocked: Math.round(12 * countMultiplier) },
+        { day: 'Sep 29', threats: Math.max(2, Math.round(22 * countMultiplier)), blocked: Math.round(18 * countMultiplier) },
+        { day: 'Oct 1', threats: Math.max(2, Math.round(26 * countMultiplier)), blocked: Math.round(24 * countMultiplier) },
+        { day: 'Oct 3', threats: Math.max(3, Math.round(31 * countMultiplier)), blocked: Math.round(28 * countMultiplier) },
+        { day: 'Oct 5', threats: Math.max(3, Math.round(38 * countMultiplier)), blocked: Math.round(34 * countMultiplier) },
+        { day: 'Oct 7', threats: Math.max(2, Math.round(29 * countMultiplier)), blocked: Math.round(27 * countMultiplier) },
+        { day: 'Oct 10', threats: Math.max(1, Math.round(20 * countMultiplier)), blocked: Math.round(19 * countMultiplier) },
+      ];
+    } else if (dateFilter.preset === '60d') {
+      return [
+        { day: 'Aug 15', threats: Math.max(2, Math.round(45 * countMultiplier)), blocked: Math.round(40 * countMultiplier) },
+        { day: 'Aug 30', threats: Math.max(3, Math.round(62 * countMultiplier)), blocked: Math.round(55 * countMultiplier) },
+        { day: 'Sep 10', threats: Math.max(4, Math.round(78 * countMultiplier)), blocked: Math.round(70 * countMultiplier) },
+        { day: 'Sep 20', threats: Math.max(5, Math.round(89 * countMultiplier)), blocked: Math.round(82 * countMultiplier) },
+        { day: 'Sep 30', threats: Math.max(4, Math.round(96 * countMultiplier)), blocked: Math.round(90 * countMultiplier) },
+        { day: 'Oct 10', threats: Math.max(3, Math.round(84 * countMultiplier)), blocked: Math.round(80 * countMultiplier) },
+      ];
+    } else if (dateFilter.preset === '90d') {
+      return [
+        { day: 'Jul', threats: Math.max(4, Math.round(75 * countMultiplier)), blocked: Math.round(68 * countMultiplier) },
+        { day: 'Aug', threats: Math.max(5, Math.round(110 * countMultiplier)), blocked: Math.round(102 * countMultiplier) },
+        { day: 'Sep', threats: Math.max(6, Math.round(145 * countMultiplier)), blocked: Math.round(136 * countMultiplier) },
+        { day: 'Oct', threats: Math.max(5, Math.round(128 * countMultiplier)), blocked: Math.round(122 * countMultiplier) },
+      ];
+    } else {
+      // 30d default or custom
+      return [
+        { day: 'Sep 10', threats: Math.max(1, Math.round(12 * countMultiplier)), blocked: Math.round(10 * countMultiplier) },
+        { day: 'Sep 15', threats: Math.max(1, Math.round(19 * countMultiplier)), blocked: Math.round(16 * countMultiplier) },
+        { day: 'Sep 20', threats: Math.max(2, Math.round(25 * countMultiplier)), blocked: Math.round(21 * countMultiplier) },
+        { day: 'Sep 25', threats: Math.max(2, Math.round(31 * countMultiplier)), blocked: Math.round(27 * countMultiplier) },
+        { day: 'Sep 30', threats: Math.max(3, Math.round(38 * countMultiplier)), blocked: Math.round(34 * countMultiplier) },
+        { day: 'Oct 5', threats: Math.max(2, Math.round(30 * countMultiplier)), blocked: Math.round(28 * countMultiplier) },
+        { day: 'Oct 10', threats: Math.max(1, Math.round(22 * countMultiplier)), blocked: Math.round(21 * countMultiplier) },
+      ];
+    }
+  }, [dateFilter.preset, threatFilter]);
+
+  // Dynamic Category Distribution from filtered threats
+  const categoryData = useMemo(() => {
+    if (filteredThreats.length > 0) {
+      const counts: Record<string, number> = {};
+      filteredThreats.forEach(t => {
+        let label = 'Fake websites';
+        if (t.category.includes('typo')) label = 'Lookalike websites';
+        else if (t.category.includes('social') || t.category.includes('exec')) label = 'Fake social accounts';
+        else if (t.category.includes('mobile')) label = 'Fake mobile apps';
+        else if (t.category.includes('credential')) label = 'Password theft sites';
+        counts[label] = (counts[label] || 0) + 1;
+      });
+
+      const total = filteredThreats.length;
+      const palette: Record<string, string> = {
+        'Fake websites': '#C8485E',
+        'Lookalike websites': '#B87B28',
+        'Fake social accounts': '#434346',
+        'Fake mobile apps': '#111312',
+        'Password theft sites': '#7C3AED',
+      };
+
+      return Object.entries(counts).map(([name, count]) => ({
+        name,
+        value: Math.round((count / total) * 100),
+        color: palette[name] || '#64748B'
+      }));
+    }
+
+    return [
+      { name: 'Fake websites', value: 45, color: '#C8485E' },
+      { name: 'Lookalike websites', value: 28, color: '#B87B28' },
+      { name: 'Fake social accounts', value: 18, color: '#434346' },
+      { name: 'Fake mobile apps', value: 9, color: '#111312' },
+    ];
+  }, [filteredThreats]);
+
+  // Dynamic KPI metrics updated by filtered threats
+  const activeThreatsCount = useMemo(() => {
+    return filteredThreats.filter(t => t.status === 'active' || t.status === 'under_investigation').length;
+  }, [filteredThreats]);
+
+  const activeCampaignsCount = useMemo(() => {
+    if (threatFilter === 'resolved' || threatFilter === 'low') return 0;
+    return filteredThreats.some(t => t.campaignId) ? 1 : 0;
+  }, [filteredThreats, threatFilter]);
+
+  const criticalThreatsCount = useMemo(() => {
+    return filteredThreats.filter(t => t.severity === 'critical').length;
+  }, [filteredThreats]);
+
+  const threatsRemovedCount = useMemo(() => {
+    const resolvedInFilter = filteredThreats.filter(t => t.status === 'resolved').length;
+    // Scale baseline by time window
+    const baseWindow = 
+      dateFilter.preset === '7d' ? 24 :
+      dateFilter.preset === '14d' ? 52 :
+      dateFilter.preset === '30d' ? 138 :
+      dateFilter.preset === '60d' ? 210 :
+      dateFilter.preset === '90d' ? 284 : 138;
+    return baseWindow + resolvedInFilter;
+  }, [filteredThreats, dateFilter.preset]);
+
+  // Dynamic Digital Risk Score and Level derived from filtered threats data
   const riskScore = useMemo(() => {
-    if (threats.length > 0) {
-      const active = threats.filter(t => t.status === 'active' || t.status === 'under_investigation');
+    if (filteredThreats.length > 0) {
+      const active = filteredThreats.filter(t => t.status === 'active' || t.status === 'under_investigation');
       if (active.length > 0) {
         const avg = Math.round(active.reduce((acc, t) => acc + (t.riskScore || 80), 0) / active.length);
-        return Math.max(avg, 75);
+        return Math.min(100, Math.max(45, avg));
       }
+      const avg = Math.round(filteredThreats.reduce((acc, t) => acc + (t.riskScore || 60), 0) / filteredThreats.length);
+      return Math.max(30, avg - 25);
     }
-    return 82;
-  }, [threats]);
+    return 35; // Safe baseline when 0 matching threats
+  }, [filteredThreats]);
 
   const riskLevel = useMemo(() => {
     if (riskScore >= 75) {
@@ -130,8 +312,13 @@ export const OverviewDashboard: React.FC = () => {
     };
   }, [riskScore]);
 
-  // Threats needing immediate attention
-  const urgentThreats = threats.filter(t => t.severity === 'critical' || t.status === 'active').slice(0, 3);
+  // Threats needing immediate attention filtered reactively
+  const urgentThreats = useMemo(() => {
+    if (threatFilter === 'all') {
+      return filteredThreats.filter(t => t.severity === 'critical' || t.status === 'active').slice(0, 4);
+    }
+    return filteredThreats.slice(0, 4);
+  }, [filteredThreats, threatFilter]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -215,13 +402,13 @@ export const OverviewDashboard: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-[#737478] uppercase tracking-wider">
-                  Risk Score
+                  Risk Level
                 </span>
-                <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full border mt-0.5 text-center ${riskLevel.bgColor} ${riskLevel.textColor} ${riskLevel.borderColor}`}>
-                  {riskLevel.label}
+                <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border mt-0.5 text-center ${riskLevel.bgColor} ${riskLevel.textColor} ${riskLevel.borderColor}`}>
+                  Risk level: {riskLevel.label.replace(' Risk', '')}
                 </span>
                 <span className="sr-only">
-                  Digital Risk Score: {riskScore} out of 100, {riskLevel.label}
+                  Risk level: {riskLevel.label}, Score: {riskScore} out of 100
                 </span>
               </div>
             </div>
@@ -249,10 +436,57 @@ export const OverviewDashboard: React.FC = () => {
           </div>
           <p className="text-xs text-[#737478] leading-relaxed">
             <strong className="text-[#111312] font-bold mr-1.5">Executive Insight:</strong>
-            <strong className="text-[#111312]">{activeCampaignsCount} active impersonation campaign{activeCampaignsCount === 1 ? '' : 's'}</strong> detected.&nbsp;
-            <strong className="text-emerald-700 font-semibold">{threatsRemovedCount} malicious assets</strong> removed.&nbsp;
-            Immediate action recommended for <strong className="text-[#C8485E] font-semibold">{criticalThreatsCount} critical phishing site{criticalThreatsCount === 1 ? '' : 's'}</strong>.
+            <strong className="text-[#111312]">{activeCampaignsCount} active fake campaign{activeCampaignsCount === 1 ? '' : 's'}</strong> targeting customers.&nbsp;
+            <strong className="text-emerald-700 font-semibold">{threatsRemovedCount} fake sites & accounts</strong> taken down.&nbsp;
+            Immediate action recommended for <strong className="text-[#C8485E] font-semibold">{criticalThreatsCount} critical fake site{criticalThreatsCount === 1 ? '' : 's'}</strong>.
           </p>
+        </div>
+      </div>
+
+      {/* Modern Filter Control Bar (Matching Reference Screenshot) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 px-5 py-3.5 rounded-3xl bg-white border border-[#E2E1DC] shadow-xs">
+        {/* Left: Section Scope Title & Live Count */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#111312]" />
+            <h2 className="text-xs font-bold text-[#111312] uppercase tracking-wider">
+              Threats Found & Activity
+            </h2>
+          </div>
+          <span className="text-xs text-[#737478]">
+            <strong className="text-[#111312] font-bold">{filteredThreats.length}</strong> threat{filteredThreats.length === 1 ? '' : 's'} found
+          </span>
+          {(threatFilter !== 'all' || dateFilter.preset !== '30d') && (
+            <button
+              type="button"
+              onClick={() => {
+                setThreatFilter('all');
+                setDateFilter({ preset: '30d', label: '30 days' });
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#737478] hover:text-[#111312] transition-colors cursor-pointer ml-1"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset filters</span>
+            </button>
+          )}
+        </div>
+
+        {/* Right: Dark Rounded Dropdowns from Reference Screenshot */}
+        <div className="flex items-center gap-2.5 flex-wrap self-end sm:self-auto">
+          {/* Threat Filter Dropdown */}
+          <ThreatFilterDropdown
+            value={threatFilter}
+            onChange={setThreatFilter}
+            counts={threatFilterCounts}
+            align="right"
+          />
+
+          {/* Date Filter Dropdown */}
+          <DateFilterDropdown
+            value={dateFilter}
+            onChange={setDateFilter}
+            align="right"
+          />
         </div>
       </div>
 
@@ -309,7 +543,7 @@ export const OverviewDashboard: React.FC = () => {
               <span className="w-3 h-3 rounded-full bg-rose-500 animate-ping" />
               <div>
                 <h3 className="text-sm font-bold text-brand-dark">Threats Needing Immediate Attention</h3>
-                <p className="text-xs text-brand-muted">Critical impersonations actively harvesting customer credentials</p>
+                <p className="text-xs text-brand-muted">Dangerous fake sites or accounts trying to trick your customers right now</p>
               </div>
             </div>
             <Link to="/brand-owner/threat-management" className="text-xs font-bold text-[#111312] hover:underline flex items-center gap-1">
@@ -321,38 +555,58 @@ export const OverviewDashboard: React.FC = () => {
         className="border-rose-200/80 shadow-soft"
       >
         <div className="space-y-3">
-          {urgentThreats.map((threat) => (
-            <div 
-              key={threat.id} 
-              className="p-4 rounded-2xl bg-rose-50/40 hover:bg-rose-50/70 border border-rose-100 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono font-bold text-brand-dark text-sm">
-                    {threat.targetDomainOrUrl}
-                  </span>
-                  <Badge severity={threat.severity} size="sm" />
-                  <Badge status={threat.status} size="sm" />
+          {urgentThreats.length > 0 ? (
+            urgentThreats.map((threat) => (
+              <div 
+                key={threat.id} 
+                className="p-4 rounded-2xl bg-rose-50/40 hover:bg-rose-50/70 border border-rose-100 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono font-bold text-brand-dark text-sm">
+                      {threat.targetDomainOrUrl}
+                    </span>
+                    <Badge severity={threat.severity} size="sm" />
+                    <Badge status={threat.status} size="sm" />
+                  </div>
+                  <p className="text-xs text-brand-muted leading-relaxed">
+                    {threat.riskExplanation}
+                  </p>
                 </div>
-                <p className="text-xs text-brand-muted leading-relaxed">
-                  {threat.riskExplanation}
-                </p>
-              </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <Link to={`/brand-owner/threats/${threat.id}`}>
-                  <Button variant="secondary" size="sm">
-                    Investigate
-                  </Button>
-                </Link>
-                <Link to={`/brand-owner/recommended-actions?threatId=${threat.id}`}>
-                  <Button size="sm" leftIcon={<Send className="w-3.5 h-3.5" />}>
-                    Take Action
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link to={`/brand-owner/threats/${threat.id}`}>
+                    <Button variant="secondary" size="sm">
+                      Investigate
+                    </Button>
+                  </Link>
+                  <Link to={`/brand-owner/recommended-actions?threatId=${threat.id}`}>
+                    <Button size="sm" leftIcon={<Send className="w-3.5 h-3.5" />}>
+                      Take Action
+                    </Button>
+                  </Link>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="p-8 rounded-2xl bg-[#FBFBF9] border border-[#EAE9E4] text-center space-y-2">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+              <p className="text-sm font-bold text-[#111312]">No immediate threats matching this filter scope</p>
+              <p className="text-xs text-[#737478]">
+                All assets within {dateFilter.label} match healthy security baseline parameters.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setThreatFilter('all');
+                  setDateFilter({ preset: '30d', label: '30 days' });
+                }}
+                className="mt-2 text-xs font-bold text-[#111312] underline hover:text-black cursor-pointer"
+              >
+                Reset to All Threats (30 days)
+              </button>
             </div>
-          ))}
+          )}
         </div>
       </Card>
 
@@ -365,15 +619,15 @@ export const OverviewDashboard: React.FC = () => {
             header={
               <div className="flex items-center justify-between w-full">
                 <div>
-                  <h3 className="text-sm font-bold text-brand-dark">Threat Detection & Neutralization Trend</h3>
-                  <p className="text-xs text-brand-muted">Real-time telemetry across automated crawlers and community reports</p>
+                  <h3 className="text-sm font-bold text-brand-dark">Threats Detected & Removed Over Time</h3>
+                  <p className="text-xs text-brand-muted">Live updates across automated internet scanning and verified customer reports</p>
                 </div>
                 <div className="flex items-center gap-4 text-xs font-semibold">
                   <span className="flex items-center gap-1.5 text-[#111312]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#111312]" /> Discovered
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#111312]" /> Threats found
                   </span>
                   <span className="flex items-center gap-1.5 text-emerald-700">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#2F7C5B]" /> Neutralized
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#2F7C5B]" /> Taken down
                   </span>
                 </div>
               </div>
@@ -416,8 +670,8 @@ export const OverviewDashboard: React.FC = () => {
           <Card
             header={
               <div>
-                <h3 className="text-sm font-bold text-brand-dark">Threat Vector Distribution</h3>
-                <p className="text-xs text-brand-muted">Active attack classification</p>
+                <h3 className="text-sm font-bold text-brand-dark">Types of Threats Found</h3>
+                <p className="text-xs text-brand-muted">Breakdown of lookalike websites, fake accounts, and apps</p>
               </div>
             }
           >

@@ -73,25 +73,11 @@ export const VerifiedReviewModal: React.FC<VerifiedReviewModalProps> = ({
   };
 
   const handleQuickFillExample = () => {
-    if (selectedBrand?.name.includes('Apex')) {
-      setProductPurchased('Apex Premier Commercial Treasury & Fraud Shield');
-      setReferenceId('INV-2026-APEX-99214');
-      setOrderAmount('$2,450.00 / mo');
-      setTitle('Outstanding scam protection & prompt fraud response');
-      setComment('Had an unauthorized phishing attempt intercepted in real time. The verified portal made it effortless to report and confirm our treasury status.');
-    } else if (selectedBrand?.name.includes('Aura')) {
-      setProductPurchased('AuraPay Enterprise Checkout & Webhook API');
-      setReferenceId('TXN-AURA-882104-US');
-      setOrderAmount('$450.00 / mo');
-      setTitle('Rock-solid checkout integrity and zero spoofing');
-      setComment('Our customer checkout flows are completely protected against rogue payment redirection scripts.');
-    } else {
-      setProductPurchased('Lumina Cloud Enterprise Cluster & WAF Node');
-      setReferenceId('ORD-LUM-2026-8812');
-      setOrderAmount('$3,800.00 / mo');
-      setTitle('Fast API domain verification with cryptographic headers');
-      setComment('Every webhook and API gateway is signature-verified. Impersonator attacks have dropped to zero.');
-    }
+    setProductPurchased('Apex Premier Commercial Treasury & Fraud Shield');
+    setReferenceId('INV-2026-APEX-99214');
+    setOrderAmount('$2,450.00 / mo');
+    setTitle('Outstanding scam protection & prompt fraud response');
+    setComment('Had an unauthorized phishing attempt intercepted in real time. The verified portal made it effortless to report and confirm our treasury status.');
     setProofType('invoice_receipt');
   };
 

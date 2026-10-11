@@ -27,11 +27,7 @@ export const reviewService = {
   submitReview: async (reviewData: Partial<CustomerReview>): Promise<CustomerReview> => {
     await new Promise(r => setTimeout(r, 500));
     const reviews = await reviewService.getReviews();
-    const brand = reviewData.brandName 
-      ? reviewData.brandName 
-      : reviewData.brandId === 'brand_aurapay' ? 'AuraPay Checkout'
-      : reviewData.brandId === 'brand_lumina' ? 'Lumina Cloud'
-      : 'ApexBank Global';
+    const brand = reviewData.brandName || 'ApexBank Global';
 
     const newReview: CustomerReview = {
       id: `rev_${Date.now()}`,

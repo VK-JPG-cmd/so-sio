@@ -53,7 +53,7 @@ interface PlainOverview {
   whoIsTargeted: string;
   riskLevel: 'Critical' | 'High' | 'Medium' | 'Low';
   riskSeverity: 'critical' | 'high' | 'medium' | 'low';
-  currentStatus: 'Active' | 'Under Investigation' | 'Takedown in Progress' | 'Contained' | 'Resolved';
+  currentStatus: 'Active' | 'Being reviewed' | 'Removal requested' | 'Contained' | 'Resolved';
   impact: string;
   recommendedNextStep: string;
 }
@@ -70,7 +70,7 @@ const getCampaignSimpleOverview = (camp: ThreatCampaign, index: number): PlainOv
       whoIsTargeted: 'Online banking and mobile app customers across US & EU regions.',
       riskLevel: 'Critical',
       riskSeverity: 'critical',
-      currentStatus: camp.status === 'active' ? 'Active' : 'Takedown in Progress',
+      currentStatus: camp.status === 'active' ? 'Active' : 'Removal requested',
       impact: 'Customers could unknowingly surrender login credentials and have SMS one-time security codes intercepted.',
       recommendedNextStep: 'Approve domain registrar takedowns and issue an instant mobile app security advisory.'
     };
@@ -123,7 +123,7 @@ const getCampaignSimpleOverview = (camp: ThreatCampaign, index: number): PlainOv
     whoIsTargeted: `Brand customers across ${camp.targetedRegions?.length > 0 ? camp.targetedRegions.join(', ') : 'active service regions'}.`,
     riskLevel: mappedSev.level,
     riskSeverity: mappedSev.sev,
-    currentStatus: camp.status === 'active' ? 'Active' : camp.status === 'contained' ? 'Contained' : 'Under Investigation',
+    currentStatus: camp.status === 'active' ? 'Active' : camp.status === 'contained' ? 'Contained' : 'Being reviewed',
     impact: 'Potential risk of customer fraud, brand credential harvesting, and reputation damage.',
     recommendedNextStep: 'Review correlated threat indicators and initiate coordinated takedown enforcement.'
   };

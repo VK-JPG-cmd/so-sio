@@ -66,30 +66,30 @@ export const AIThreatExplanationPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-extrabold text-brand-dark tracking-tight">AI Threat Explanation</h1>
+            <h1 className="text-2xl font-extrabold text-brand-dark tracking-tight">Why is this a threat?</h1>
             <span className="text-xs font-bold text-[#111312] px-2.5 py-0.5 rounded-full bg-[#F4F3EF] border border-[#DCDAD4]">
               Plain English Analysis
             </span>
           </div>
           <p className="text-xs text-brand-muted mt-1">
-            Understand exactly why our AI defense system detected and flagged this threat without technical jargon.
+            Understand in clear, simple words why our AI defense system flagged this threat and how it targets your customers.
           </p>
         </div>
 
         {/* Threat Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-brand-muted">Inspecting Threat:</span>
+          <span className="text-xs font-semibold text-brand-muted">Inspecting Target:</span>
           <select
             value={selectedThreat.id}
             onChange={(e) => {
               const target = threats.find(t => t.id === e.target.value);
               if (target) setSelectedThreat(target);
             }}
-            className="px-3 py-2 text-xs font-bold rounded-2xl bg-white border border-brand-border text-brand-dark focus:outline-none focus:border-[#111312] max-w-xs truncate"
+            className="px-3 py-2 text-xs font-bold rounded-2xl bg-white border border-brand-border text-brand-dark focus:outline-none focus:border-[#111312] max-w-xs truncate cursor-pointer shadow-xs"
           >
             {threats.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.targetDomainOrUrl} ({t.category.replace(/_/g, ' ')})
+                {t.targetDomainOrUrl}
               </option>
             ))}
           </select>
@@ -108,7 +108,13 @@ export const AIThreatExplanationPage: React.FC = () => {
             {selectedThreat.targetDomainOrUrl}
           </h2>
           <p className="text-xs text-brand-muted">
-            Categorized as <strong className="text-brand-dark capitalize">{selectedThreat.category.replace(/_/g, ' ')}</strong> with AI Risk Score of <strong className="text-rose-600">{selectedThreat.riskScore}/100</strong>
+            Identified as a <strong className="text-brand-dark capitalize">{
+              selectedThreat.category === 'typosquatting' ? 'Lookalike website' :
+              selectedThreat.category === 'social_impersonation' ? 'Fake social account' :
+              selectedThreat.category === 'mobile_malware' ? 'Fake mobile app' :
+              selectedThreat.category === 'credential_harvesting' ? 'Password theft site' :
+              'Fake website'
+            }</strong> with Risk level of <strong className="text-rose-600 capitalize">{selectedThreat.severity} ({selectedThreat.riskScore}/100)</strong>
           </p>
         </div>
 

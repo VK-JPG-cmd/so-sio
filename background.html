@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>So-cio — Cinematic Animated Background</title>
+  <meta name="description" content="Luxury cinematic animated background for social media platform So-cio.">
+  <link rel="stylesheet" href="background.css">
+</head>
+<body>
+  <!-- Fullscreen 100vw x 100vh Background Container -->
+  <main class="cinematic-canvas-wrapper" id="canvasWrapper" aria-label="Cinematic Animated Background">
+    <!-- GPU-Accelerated 60 FPS Background Canvas -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Ambient Center Sanctuary Overlay (Guarantees clean dark center for logo) -->
+    <div class="center-sanctuary-mask"></div>
+
+    <!-- Soft Luminous Radial Depth Glow -->
+    <div class="ambient-radiance" id="ambientRadiance"></div>
+
+    <!-- Vignette Framing Layer -->
+    <div class="cinema-vignette"></div>
+
+    <!-- Initial Fade-In Curtain from Pure Black -->
+    <div class="black-curtain" id="blackCurtain"></div>
+  </main>
+
+  <!-- Script Execution -->
+  <script src="background.js"></script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>So-cio — Premium Cinematic Logo Animation</title>
+  <meta name="description" content="Cinematic, luxurious logo reveal animation for social media platform So-cio.">
+  
+  <!-- Google Fonts: Curated Suite of 18 High-Fashion, Swash, and Cinematic Display Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Elsie+Swash+Caps:wght@400;900&family=Italiana&family=Montserrat:ital,wght@0,800;0,900;1,800;1,900&family=Orbitron:wght@600;800;900&family=Outfit:wght@700;900&family=Playfair+Display:ital,wght@1,400;1,600;1,800&family=Prata&family=Righteous&family=Rozha+One&family=Space+Grotesk:wght@600;700&family=Syncopate:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  
+  <!-- Favicon icon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23000'/><text x='50' y='65' fill='%23fff' font-family='sans-serif' font-weight='900' font-size='42' text-anchor='middle'>S</text></svg>">
+
+  <link rel="stylesheet" href="fonts/font-transcity.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=5">
+  <style>
+    /* Strict Pure Video Mode: remove all controls shown in Image 3 */
+    .studio-header,
+    #studioHeader,
+    .settings-drawer,
+    #settingsDrawer,
+    .portal-cta-banner,
+    .toast-notification,
+    .modal-backdrop,
+    #exportModalBackdrop {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
+    body, html {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <!-- Main Cinema Stage Area -->
+  <div class="cinema-viewport" id="cinemaViewport">
+    <!-- Fullscreen 100vw x 100vh Luxury Ambient Background Canvas -->
+    <canvas id="viewportBgCanvas"></canvas>
+    
+    <!-- 16:9 Screen Container -->
+    <div class="screen-container aspect-16-9" id="screenContainer">
+      
+      <!-- Pure Black Cinematic Stage -->
+      <div class="cinema-stage" id="cinemaStage">
+        
+        <!-- Ambient Atmosphere & Optical Rays Layer -->
+        <div class="ambient-layer" id="ambientLayer">
+          <div class="light-bloom" id="lightBloom"></div>
+          <div class="vignette"></div>
+          <div class="cinematic-dust" id="cinematicDust"></div>
+        </div>
+
+        <!-- Anamorphic Lens Flare & Flash Elements -->
+        <div class="optical-flare-container" id="flareContainer">
+          <div class="horizontal-flare-beam" id="horizontalFlare"></div>
+          <div class="vertical-streak" id="verticalStreak"></div>
+          <div class="impact-halo" id="impactHalo"></div>
+          <div class="shockwave-ring" id="shockwaveRing"></div>
+        </div>
+
+        <!-- SVG Filter definitions for dynamic directional motion blur -->
+        <svg class="svg-filters" aria-hidden="true" width="0" height="0">
+          <defs>
+            <!-- Dynamic Horizontal Motion Blur for Left Part ("So") -->
+            <filter id="motionBlurLeft" x="-100%" y="-20%" width="300%" height="140%">
+              <feGaussianBlur id="blurKernelLeft" in="SourceGraphic" stdDeviation="0, 0" />
+            </filter>
+            <!-- Dynamic Horizontal Motion Blur for Right Part ("cio") -->
+            <filter id="motionBlurRight" x="-100%" y="-20%" width="300%" height="140%">
+              <feGaussianBlur id="blurKernelRight" in="SourceGraphic" stdDeviation="0, 0" />
+            </filter>
+          </defs>
+        </svg>
+
+        <!-- Logo Canvas Layer (Synchronized for video rendering & effects) -->
+        <canvas id="effectsCanvas" width="1920" height="1080"></canvas>
+
+        <!-- Brand Typography Container -->
+        <div class="logo-wrapper" id="logoWrapper">
+          <div class="brand-text font-transcity" id="brandText" aria-label="So-cio">
+            <!-- Left Part: "So" entering from left -->
+            <span class="part part-left" id="partSo"><span class="hero-s" id="heroS"><svg class="swash-s-svg" viewBox="0 0 145 190" aria-label="S"><path class="swash-s-path" d="M 34 34 C 44 18, 68 14, 88 20 C 104 24, 108 38, 102 52 C 94 68, 72 80, 54 96 C 36 110, 26 124, 28 140 C 30 156, 48 164, 68 160 C 86 156, 98 144, 102 130 C 104 118, 96 106, 82 106 C 68 106, 56 118, 56 132 C 56 148, 72 168, 94 174 C 110 178, 126 168, 134 152" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="hero-s-glyph">S</span></span><span class="char-rest">o</span></span>
+            
+            <!-- Hyphen connector: snaps dynamically when they join -->
+            <span class="part part-hyphen" id="partHyphen" aria-hidden="true"></span>
+            
+            <!-- Right Part: "cio" entering from right -->
+            <span class="part part-right" id="partCio">cio</span>
+          </div>
+        </div>
+
+        <!-- Handshake Light Arc Canvas — animated at impact moment -->
+        <canvas id="handshakeCanvas" width="1920" height="1080"></canvas>
+
+        <!-- Chrome Handshake S Logo Reveal — fades in after So-cio hold -->
+        <div class="chrome-logo-overlay" id="chromeLogoOverlay" aria-hidden="true">
+          <img src="socio-logo.png" alt="So-cio handshake S logo" id="chromeLogoImg" draggable="false">
+        </div>
+
+
+
+        <!-- Cinema Letterbox Bars (Toggleable) -->
+        <div class="cinema-curtain curtain-top" id="curtainTop"></div>
+        <div class="cinema-curtain curtain-bottom" id="curtainBottom"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Studio Floating UI Bar (Modern, Glassmorphism, Auto-Hides) -->
+  <header class="studio-header" id="studioHeader">
+    <div class="brand-badge">
+      <span class="pulse-indicator"></span>
+      <span class="title">So-cio</span>
+      <span class="badge-tag">Cinematic 4K</span>
+    </div>
+
+    <!-- Timeline Scrubber & Timecode -->
+    <div class="timeline-control-group">
+      <button class="btn btn-icon" id="btnPlayPause" title="Play/Pause (Space)" aria-label="Play/Pause">
+        <svg class="icon icon-play" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="6 4 20 12 6 20 6 4"></polygon>
+        </svg>
+        <svg class="icon icon-pause" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+          <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+        </svg>
+      </button>
+
+      <div class="timeline-scrubber-track">
+        <input type="range" id="timelineScrubber" min="0" max="8.8" step="0.01" value="0" aria-label="Timeline scrubber">
+        <div class="scrubber-progress-fill" id="scrubberFill"></div>
+      </div>
+
+      <div class="timecode-display" id="timecodeDisplay">00.00s / 08.80s</div>
+    </div>
+
+    <!-- Quick Action Controls -->
+    <div class="studio-actions">
+      <!-- Replay Button -->
+      <button class="btn btn-primary" id="btnReplay" title="Replay Animation (R)">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+        </svg>
+        <span>Replay</span>
+      </button>
+
+      <!-- Audio Toggle -->
+      <button class="btn btn-secondary btn-icon-only" id="btnSoundToggle" title="Toggle Cinematic Sound">
+        <svg class="icon icon-sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+        </svg>
+        <svg class="icon icon-sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15"></line>
+          <line x1="17" y1="9" x2="23" y2="15"></line>
+        </svg>
+      </button>
+
+      <!-- Quick Typography Selector -->
+      <div class="header-font-selector" title="Switch Animation Typography">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 7 4 4 20 4 20 7"></polyline>
+          <line x1="9" y1="20" x2="15" y2="20"></line>
+          <line x1="12" y1="4" x2="12" y2="20"></line>
+        </svg>
+        <select id="quickFontSelect" class="header-font-dropdown" aria-label="Select Typography Font">
+          <!-- Populated dynamically via JS -->
+        </select>
+      </div>
+
+      <!-- Settings Dropdown Toggle -->
+      <button class="btn btn-secondary" id="btnSettingsToggle" title="Settings & Customization">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Customize</span>
+      </button>
+
+      <!-- Export Video Button -->
+      <button class="btn btn-export" id="btnExportVideo" title="Record & Export Video">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Export Video</span>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button class="btn btn-secondary btn-icon-only" id="btnFullscreen" title="Toggle Fullscreen (F)">
+        <svg class="icon icon-fs-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+        <svg class="icon icon-fs-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+        </svg>
+      </button>
+
+      <!-- Enter Brand Portal Direct -->
+      <a href="/brand/overview" class="btn btn-primary" title="Launch BrandShield Security Portal" style="background: #FBF5A5; color: #111312; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 10px;">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span>Brand Portal &rarr;</span>
+      </a>
+
+      <!-- Customer Portal Direct -->
+      <a href="/customer" class="btn btn-secondary" title="Customer Threat Reporting" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 10px;">
+        <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span>Customer Portal</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Studio Settings Drawer / Modal -->
+  <aside class="settings-drawer" id="settingsDrawer" aria-hidden="true">
+    <div class="drawer-header">
+      <h3>Animation Studio Controls</h3>
+      <button class="btn-close" id="btnCloseDrawer">&times;</button>
+    </div>
+    
+    <div class="drawer-body">
+      <!-- Aspect Ratio -->
+      <div class="control-row">
+        <label>Aspect Ratio</label>
+        <div class="btn-segmented" id="aspectRatioSelector">
+          <button class="segment-btn active" data-aspect="16-9">16:9 Cinema</button>
+          <button class="segment-btn" data-aspect="21-9">21:9 Scope</button>
+          <button class="segment-btn" data-aspect="1-1">1:1 Square</button>
+          <button class="segment-btn" data-aspect="9-16">9:16 Reel</button>
+        </div>
+      </div>
+
+      <!-- Typography Studio Section -->
+      <div class="control-row font-studio-section">
+        <div class="font-studio-header">
+          <label>Typography Suite</label>
+          <span class="font-count-pill" id="fontCountPill">20 Fonts</span>
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div class="font-category-filters" id="fontCategoryFilters">
+          <button class="font-filter-pill active" data-category="all">All (20)</button>
+          <button class="font-filter-pill" data-category="featured">★ Transcity</button>
+          <button class="font-filter-pill" data-category="romantic">Romantic & Swash</button>
+          <button class="font-filter-pill" data-category="couture">Haute Couture</button>
+          <button class="font-filter-pill" data-category="cinematic">Cinematic</button>
+          <button class="font-filter-pill" data-category="cyber">Cyber / Sci-Fi</button>
+          <button class="font-filter-pill" data-category="impact">Bold Impact</button>
+        </div>
+
+        <!-- Typography Cards Grid -->
+        <div class="font-cards-grid" id="fontCardsGrid">
+          <!-- Populated dynamically via JS with live previews -->
+        </div>
+      </div>
+
+      <!-- Typography Scale Slider -->
+      <div class="control-row">
+        <div class="slider-label-row">
+          <label for="fontSizeSlider">Typography Scale</label>
+          <span class="slider-value-pill" id="fontSizeValue">125%</span>
+        </div>
+        <input type="range" id="fontSizeSlider" min="0.8" max="1.8" step="0.05" value="1.25">
+      </div>
+
+      <!-- Playback Speed -->
+      <div class="control-row">
+        <label>Speed Multiplier</label>
+        <div class="btn-segmented" id="speedSelector">
+          <button class="segment-btn" data-speed="0.5">0.5x Slow</button>
+          <button class="segment-btn active" data-speed="1.0">1.0x Normal</button>
+          <button class="segment-btn" data-speed="1.5">1.5x Fast</button>
+        </div>
+      </div>
+
+      <!-- Atmosphere Engine Mode (React Bits Pro Lightspeed) -->
+      <div class="control-row">
+        <label>Atmosphere Engine</label>
+        <div class="btn-segmented" id="bgModeSelector">
+          <button class="segment-btn active" data-bg="lightspeed">⚡ Lightspeed</button>
+          <button class="segment-btn" data-bg="fusion">✨ Fusion</button>
+          <button class="segment-btn" data-bg="silk">🌊 Silk Waves</button>
+        </div>
+      </div>
+
+      <!-- Lightspeed Warp Controls -->
+      <div class="control-row" id="lightspeedControlsGroup">
+        <div class="slider-label-row">
+          <label for="lightspeedSpeedSlider">Hyperspace Speed</label>
+          <span class="slider-value-pill" id="lightspeedSpeedValue">1.15x</span>
+        </div>
+        <input type="range" id="lightspeedSpeedSlider" min="0.2" max="3.0" step="0.05" value="1.15">
+
+        <div class="slider-label-row" style="margin-top: 10px;">
+          <label for="lightspeedStreakSlider">Star Streaks</label>
+          <span class="slider-value-pill" id="lightspeedStreakValue">128</span>
+        </div>
+        <input type="range" id="lightspeedStreakSlider" min="48" max="256" step="8" value="128">
+      </div>
+
+      <!-- Flare Intensity -->
+      <div class="control-row">
+        <label for="flareIntensitySlider">Cinematic Flash Intensity</label>
+        <input type="range" id="flareIntensitySlider" min="0.2" max="2.0" step="0.1" value="1.0">
+      </div>
+
+      <!-- Motion Blur Intensity -->
+      <div class="control-row">
+        <label for="motionBlurSlider">Motion Blur Strength</label>
+        <input type="range" id="motionBlurSlider" min="0" max="40" step="2" value="24">
+      </div>
+
+      <!-- Export Options -->
+      <div class="control-divider"></div>
+      <div class="control-row">
+        <label>Direct Image Capture</label>
+        <button class="btn btn-secondary w-full" id="btnCaptureFrame">
+          <svg class="btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          Capture 4K Wallpaper (PNG)
+        </button>
+      </div>
+
+      <div class="keyboard-shortcuts-info">
+        <h4>Keyboard Shortcuts</h4>
+        <div class="shortcut-item"><span>Space</span> <span>Play / Pause</span></div>
+        <div class="shortcut-item"><span>R</span> <span>Replay</span></div>
+        <div class="shortcut-item"><span>T</span> <span>Next Typography Font</span></div>
+        <div class="shortcut-item"><span>F</span> <span>Fullscreen</span></div>
+        <div class="shortcut-item"><span>M</span> <span>Mute Audio</span></div>
+        <div class="shortcut-item"><span>H</span> <span>Toggle UI</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Video Export Progress Modal -->
+  <div class="modal-backdrop" id="exportModalBackdrop" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="recording-dot"></div>
+        <h3>Rendering Cinematic Video</h3>
+      </div>
+      <p class="modal-desc">Synthesizing 60 FPS pristine 1080p animation with motion blur and audio...</p>
+      
+      <div class="export-progress-bar">
+        <div class="export-progress-fill" id="exportProgressFill"></div>
+      </div>
+      <div class="export-status-label" id="exportStatusLabel">Processing frame 0 of 540 (0%)</div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnCancelExport">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast-notification" id="toastNotification" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="lightspeed-engine.js?v=5"></script>
+  <script src="luxury-background.js?v=5"></script>
+  <script src="cinematic-handshake-engine.js?v=5"></script>
+  <script src="sound.js?v=5"></script>
+  <script src="recorder.js?v=5"></script>
+  <script src="main.js?v=5"></script>
+</body>
+</html>
